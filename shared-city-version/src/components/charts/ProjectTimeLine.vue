@@ -1,7 +1,7 @@
 <template>
   <div class="project-timeline-container">
     <div class="timeline-header">
-      <h2>{{ projectTitle }}</h2>
+      <h2>{{ projectName }}</h2>
       <button 
         class="subscribe-btn" 
         :class="{ 'subscribed': isSubscribed }"
@@ -28,22 +28,15 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted, watch } from 'vue'
+import { ref, onMounted, onUnmounted, watch, computed } from 'vue'
 import * as echarts from 'echarts'
+import { useRoute } from 'vue-router'
+import { useStore } from 'vuex'
 import { useProjectService } from '@/services/project.service'
-import { useUserStore } from '@/store/user.store'
 
-// 组件参数
-const props = defineProps({
-  projectId: {
-    type: String,
-    required: true
-  },
-  projectTitle: {
-    type: String,
-    default: '项目时间线'
-  }
-})
+// 项目ID，从路由参数获取
+const route = useRoute()
+const projectId = ref(route.params.id || '')
 
 // 引用
 const ganttContainer = ref(null)
@@ -52,19 +45,22 @@ let chartInstance = null
 // 状态
 const projectPhases = ref([])
 const selectedPhase = ref(null)
-const isSubscribed = ref(false)
 const loading = ref(true)
+const projectName = ref('项目时间线')
 
-// 服务和存储
+// Vuex store 和服务
+const store = useStore()
 const projectService = useProjectService()
-const userStore = useUserStore()
+
+// 计算属性 - 检查是否订阅
+const isSubscribed = computed(() => {
+  return store.getters.isProjectSubscribed(projectId.value)
+})
 
 // 初始化图表
 onMounted(async () => {
-  // 加载项目阶段数据
-  await loadProjectPhases()
-  // 初始化订阅状态
-  checkSubscriptionStatus()
+  // 加载项目数据
+  await loadProjectData()
   // 创建甘特图
   initGanttChart()
   loading.value = false
@@ -85,42 +81,40 @@ watch(projectPhases, () => {
   }
 })
 
-// 加载项目阶段数据
-const loadProjectPhases = async () => {
+// 加载项目数据
+const loadProjectData = async () => {
   try {
-    const data = await projectService.getProjectPhases(props.projectId)
-    projectPhases.value = data
-  } catch (error) {
-    console.error('加载项目阶段数据失败:', error)
-  }
-}
+    // 获取项目详情
+    const project = await projectService.getProjectById(projectId.value)
+    projectName.value = project.name
 
-// 检查订阅状态
-const checkSubscriptionStatus = () => {
-  if (userStore.isAuthenticated) {
-    isSubscribed.value = userStore.subscribedProjects.includes(props.projectId)
+    // 获取项目阶段
+    const phases = await projectService.getProjectPhases(projectId.value)
+    projectPhases.value = phases
+
+    // 更新Vuex store
+    store.dispatch('setProjects', [project])
+    store.dispatch('setSelectedProject', project)
+  } catch (error) {
+    console.error('加载项目数据失败:', error)
+    // 显示错误提示
+    alert('加载项目数据失败，请重试')
   }
 }
 
 // 切换订阅状态
 const toggleSubscription = async () => {
-  if (!userStore.isAuthenticated) {
-    // 提示用户登录
-    alert('请先登录以订阅项目更新')
-    return
-  }
-
   try {
     if (isSubscribed.value) {
-      await projectService.unsubscribeProject(props.projectId)
-      userStore.removeSubscribedProject(props.projectId)
+      await projectService.unsubscribeProject(projectId.value)
+      store.dispatch('unsubscribeProject', projectId.value)
     } else {
-      await projectService.subscribeProject(props.projectId)
-      userStore.addSubscribedProject(props.projectId)
+      await projectService.subscribeProject(projectId.value)
+      store.dispatch('subscribeProject', projectId.value)
     }
-    isSubscribed.value = !isSubscribed.value
   } catch (error) {
     console.error('切换订阅状态失败:', error)
+    alert('操作失败，请重试')
   }
 }
 
