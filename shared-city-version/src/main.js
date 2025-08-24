@@ -13,15 +13,16 @@ import * as GeoUtils from './utils/geo.utils'
 Vue.use(ElementUI)
 
 // 将工具类挂载到Vue原型上
+//方便全局调用
 Vue.prototype.$cesium = CesiumHelper
 Vue.prototype.$geo = GeoUtils
 
 Vue.config.productionTip = false
-
+//创建vue根实例
 new Vue({
-  router,
-  store,
-  render: h => h(App)
+  router,//注入路由
+  store,//注入状态管理
+  render: h => h(App)//渲染根组件
 }).$mount('#app')
 
 // 添加全局错误处理
@@ -30,6 +31,7 @@ Vue.config.errorHandler = function(err, vm, info) {
   // 可以添加错误上报逻辑
 }
 
+// 监听未处理的 Promise 拒绝事件
 document.addEventListener('unhandledrejection', (event) => {
   console.error('未处理的Promise拒绝:', event.reason)
 })

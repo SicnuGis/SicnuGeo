@@ -25,7 +25,7 @@
     </div>
 
     <!-- 添加/编辑项目对话框 -->
-    <el-dialog v-model="showAddDialog" title="{{ isEditing ? '编辑项目' : '添加项目' }}" width="500px">
+    <el-dialog v-model="showAddDialog" :title="isEditing ? '编辑项目' : '添加项目'" width="500px">
       <el-form :model="formData" ref="formRef" label-width="100px">
         <el-form-item label="项目名称" prop="name" :rules="[{ required: true, message: '请输入项目名称' }]">
           <el-input v-model="formData.name"></el-input>
@@ -56,136 +56,114 @@
   </div>
 </template>
 
-<script setup>
-import { ref, onMounted, computed } from 'vue'
-import { useRouter } from 'vue-router'
-import { useStore } from 'vuex'
-import { useProjectService } from '@/services/project.service'
-import { ElMessage } from 'element-plus'
+<script>
+import { projectService } from '@/services/project.service'
 
-// 状态
-const projects = ref([])
-const showAddDialog = ref(false)
-const isEditing = ref(false)
-const formRef = ref(null)
-const formData = ref({
-  id: '',
-  name: '',
-  description: '',
-  startDate: '',
-  endDate: '',
-  status: 'notStarted'
-})
-
-// 路由、store和服务
-const router = useRouter()
-const store = useStore()
-const projectService = useProjectService()
-
-// 计算属性 - 获取项目列表
-const projectList = computed(() => {
-  return store.getters.getAllProjects()
-})
-
-// 生命周期
-onMounted(async () => {
-  await loadProjects()
-})
-
-// 加载项目列表
-const loadProjects = async () => {
-  try {
-    const data = await projectService.getAllProjects()
-    projects.value = data
-    // 更新Vuex store
-    store.dispatch('setProjects', data)
-  } catch (error) {
-    console.error('加载项目列表失败:', error)
-    ElMessage.error('加载项目列表失败')
-  }
-}
-
-// 查看项目
-const viewProject = (id) => {
-  router.push({ name: 'projectDetail', params: { id } })
-}
-
-// 编辑项目
-const editProject = (project) => {
-  isEditing = true
-  formData.value = { ...project }
-  showAddDialog.value = true
-}
-
-// 删除项目
-const deleteProject = async (id) => {
-  try {
-    await projectService.deleteProject(id)
-    // 更新本地数据
-    projects.value = projects.value.filter(project => project.id !== id)
-    // 更新Vuex store
-    store.dispatch('deleteProjectById', id)
-    ElMessage.success('项目删除成功')
-  } catch (error) {
-    console.error('删除项目失败:', error)
-    ElMessage.error('删除项目失败')
-  }
-}
-
-// 提交表单
-const submitForm = async () => {
-  try {
-    await formRef.value.validate()
-
-    if (isEditing) {
-      // 编辑项目
-      await projectService.updateProject(formData.value.id, formData.value)
-      // 更新本地数据
-      const index = projects.value.findIndex(project => project.id === formData.value.id)
-      if (index !== -1) {
-        projects.value[index] = { ...formData.value }
+export default {
+  data() {
+    return {
+      projects: [],
+      showAddDialog: false,
+      isEditing: false,
+      formData: {
+        id: '',
+        name: '',
+        description: '',
+        startDate: '',
+        endDate: '',
+        status: 'notStarted'
       }
-      // 更新Vuex store
-      store.dispatch('updateProjectById', {
-        id: formData.value.id,
-        updatedData: formData.value
-      })
-      ElMessage.success('项目更新成功')
-    } else {
-      // 添加项目
-      const newProject = await projectService.createProject(formData.value)
-      // 更新本地数据
-      projects.value.push(newProject)
-      // 更新Vuex store
-      store.dispatch('addProject', newProject)
-      ElMessage.success('项目添加成功')
     }
+  },
+  mounted() {
+    this.loadProjects()
+  },
+  methods: {
+    async loadProjects() {
+      try {
+        const data = await projectService.getAllProjects()
+        this.projects = data
+        // 更新Vuex store
+        this.$store.dispatch('setProjects', data)
+      } catch (error) {
+        console.error('加载项目列表失败:', error)
+        this.$message.error('加载项目列表失败')
+      }
+    },
+    viewProject(id) {
+      this.$router.push({ name: 'projectDetail', params: { id } })
+    },
+    editProject(project) {
+      this.isEditing = true
+      this.formData = { ...project }
+      this.showAddDialog = true
+    },
+    async deleteProject(id) {
+      try {
+        await projectService.deleteProject(id)
+        // 更新本地数据
+        this.projects = this.projects.filter(project => project.id !== id)
+        // 更新Vuex store
+        this.$store.dispatch('deleteProjectById', id)
+        this.$message.success('项目删除成功')
+      } catch (error) {
+        console.error('删除项目失败:', error)
+        this.$message.error('删除项目失败')
+      }
+    },
+    async submitForm() {
+      try {
+        await this.$refs.formRef.validate()
 
-    // 关闭对话框
-    showAddDialog.value = false
-    // 重置表单
-    resetForm()
-  } catch (error) {
-    console.error('提交表单失败:', error)
-    if (error.name === 'ValidationError') {
-      return
+        if (this.isEditing) {
+          // 编辑项目
+          await projectService.updateProject(this.formData.id, this.formData)
+          // 更新本地数据
+          const index = this.projects.findIndex(project => project.id === this.formData.id)
+          if (index !== -1) {
+            this.projects[index] = { ...this.formData }
+          }
+          // 更新Vuex store
+          this.$store.dispatch('updateProjectById', {
+            id: this.formData.id,
+            updatedData: this.formData
+          })
+          this.$message.success('项目更新成功')
+        } else {
+          // 添加项目
+          const newProject = await projectService.createProject(this.formData)
+          // 更新本地数据
+          this.projects.push(newProject)
+          // 更新Vuex store
+          this.$store.dispatch('addProject', newProject)
+          this.$message.success('项目添加成功')
+        }
+
+        // 关闭对话框
+        this.showAddDialog = false
+        // 重置表单
+        this.resetForm()
+      } catch (error) {
+        console.error('提交表单失败:', error)
+        if (error.name === 'ValidationError') {
+          return
+        }
+        this.$message.error('操作失败，请重试')
+      }
+    },
+    resetForm() {
+      this.$refs.formRef.resetFields()
+      this.formData = {
+        id: '',
+        name: '',
+        description: '',
+        startDate: '',
+        endDate: '',
+        status: 'notStarted'
+      }
+      this.isEditing = false
     }
-    ElMessage.error('操作失败，请重试')
   }
-}
-
-// 重置表单
-const resetForm = () => {
-  formRef.value.resetFields()
-  formData.value = {
-    id: '',
-    name: '',
-    description: '',
-    startDate: '',
-    endDate: '',
-    status: 'notStarted'
-  }
-  isEditing = false
 }
 </script>
 

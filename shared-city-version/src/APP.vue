@@ -26,11 +26,11 @@ export default {
   name: 'App',
   data() {
     return {
-      activeIndex: 'home'
+      activeIndex: 'home'//默认激活的菜单项
     }
   },
   computed: {
-    ...mapGetters(['getAllProjects'])
+    ...mapGetters(['getAllProjects'])//从vuex获取所有项目
   },
   created() {
     // 根据当前路由设置激活的菜单项

@@ -46,72 +46,59 @@
   </div>
 </template>
 
-<script setup>
-import { ref, onMounted, computed } from 'vue'
-import { useRouter } from 'vue-router'
-import { useStore } from 'vuex'
-import { useProjectService } from '@/services/project.service'
+<script>
+import { projectService } from '@/services/project.service'
 
-// 状态
-const projects = ref([])
-
-// 路由、store和服务
-const router = useRouter()
-const store = useStore()
-const projectService = useProjectService()
-
-// 计算属性 - 获取最近项目
-const recentProjects = computed(() => {
-  const allProjects = store.getters.getAllProjects()
-  // 按创建时间降序排序，取前3个
-  return [...allProjects].sort((a, b) => {
-    return new Date(b.createdAt || b.startDate) - new Date(a.createdAt || a.startDate)
-  }).slice(0, 3)
-})
-
-// 生命周期
-onMounted(async () => {
-  await loadProjects()
-})
-
-// 加载项目列表
-const loadProjects = async () => {
-  try {
-    const data = await projectService.getAllProjects()
-    projects.value = data
-    // 更新Vuex store
-    store.dispatch('setProjects', data)
-  } catch (error) {
-    console.error('加载项目列表失败:', error)
+export default {
+  data() {
+    return {
+      projects: []
+    }
+  },
+  computed: {
+    recentProjects() {
+      const allProjects = this.$store.getters.getAllProjects()
+      // 按创建时间降序排序，取前3个
+      return [...allProjects].sort((a, b) => {
+        return new Date(b.createdAt || b.startDate) - new Date(a.createdAt || a.startDate)
+      }).slice(0, 3)
+    }
+  },
+  mounted() {
+    this.loadProjects()
+  },
+  methods: {
+    async loadProjects() {
+      try {
+        const data = await projectService.getAllProjects()
+        this.projects = data
+        // 更新Vuex store
+        this.$store.dispatch('setProjects', data)
+      } catch (error) {
+        console.error('加载项目列表失败:', error)
+      }
+    },
+    goToProjectAdmin() {
+      this.$router.push('/projects')
+    },
+    viewProject(id) {
+      this.$router.push({ name: 'ProjectDetail', params: { id } })
+    },
+    formatDate(dateString) {
+      if (!dateString) return '暂无'
+      const date = new Date(dateString)
+      return `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}-${date.getDate().toString().padStart(2, '0')}`
+    },
+    getStatusText(status) {
+      const statusMap = {
+        notStarted: '未开始',
+        inProgress: '进行中',
+        completed: '已完成',
+        delayed: '已延期'
+      }
+      return statusMap[status] || '未知状态'
+    }
   }
-}
-
-// 跳转到项目管理
-const goToProjectAdmin = () => {
-  router.push('/projects')
-}
-
-// 查看项目详情
-const viewProject = (id) => {
-  router.push({ name: 'ProjectDetail', params: { id } })
-}
-
-// 格式化日期
-const formatDate = (dateString) => {
-  if (!dateString) return '暂无'
-  const date = new Date(dateString)
-  return `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}-${date.getDate().toString().padStart(2, '0')}`
-}
-
-// 获取状态文本
-const getStatusText = (status) => {
-  const statusMap = {
-    notStarted: '未开始',
-    inProgress: '进行中',
-    completed: '已完成',
-    delayed: '已延期'
-  }
-  return statusMap[status] || '未知状态'
 }
 </script>
 

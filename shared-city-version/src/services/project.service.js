@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { useUserStore } from '@/store/user.store';
+import store from '@/store/index';
 
 // 创建axios实例
 const api = axios.create({
@@ -9,9 +9,9 @@ const api = axios.create({
 
 // 请求拦截器，添加认证token
 api.interceptors.request.use(config => {
-  const userStore = useUserStore();
-  if (userStore.token) {
-    config.headers.Authorization = `Bearer ${userStore.token}`;
+  const token = store.state.userStore.token;
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
   }
   return config;
 });
@@ -19,12 +19,12 @@ api.interceptors.request.use(config => {
 /**
  * 项目服务
  */
-export const useProjectService = () => {
+export const projectService = {
   /**
    * 获取所有项目
    * @returns {Promise<Array>} 项目列表
    */
-  const getAllProjects = async () => {
+  getAllProjects: async () => {
     try {
       const response = await api.get('/projects');
       return response.data;
@@ -32,14 +32,14 @@ export const useProjectService = () => {
       console.error('获取项目列表失败:', error);
       throw error;
     }
-  };
+  },
 
   /**
    * 获取项目详情
    * @param {string} id - 项目ID
    * @returns {Promise<Object>} 项目详情
    */
-  const getProjectById = async (id) => {
+  getProjectById: async (id) => {
     try {
       const response = await api.get(`/projects/${id}`);
       return response.data;
@@ -47,14 +47,14 @@ export const useProjectService = () => {
       console.error(`获取项目 ${id} 详情失败:`, error);
       throw error;
     }
-  };
+  },
 
   /**
    * 创建项目
    * @param {Object} projectData - 项目数据
    * @returns {Promise<Object>} 创建的项目
    */
-  const createProject = async (projectData) => {
+  createProject: async (projectData) => {
     try {
       const response = await api.post('/projects', projectData);
       return response.data;
@@ -62,7 +62,7 @@ export const useProjectService = () => {
       console.error('创建项目失败:', error);
       throw error;
     }
-  };
+  },
 
   /**
    * 更新项目
@@ -70,7 +70,7 @@ export const useProjectService = () => {
    * @param {Object} projectData - 项目数据
    * @returns {Promise<Object>} 更新后的项目
    */
-  const updateProject = async (id, projectData) => {
+  updateProject: async (id, projectData) => {
     try {
       const response = await api.put(`/projects/${id}`, projectData);
       return response.data;
@@ -78,28 +78,28 @@ export const useProjectService = () => {
       console.error(`更新项目 ${id} 失败:`, error);
       throw error;
     }
-  };
+  },
 
   /**
    * 删除项目
    * @param {string} id - 项目ID
    * @returns {Promise<void>}
    */
-  const deleteProject = async (id) => {
+  deleteProject: async (id) => {
     try {
       await api.delete(`/projects/${id}`);
     } catch (error) {
       console.error(`删除项目 ${id} 失败:`, error);
       throw error;
     }
-  };
+  },
 
   /**
    * 获取项目阶段
    * @param {string} projectId - 项目ID
    * @returns {Promise<Array>} 项目阶段列表
    */
-  const getProjectPhases = async (projectId) => {
+  getProjectPhases: async (projectId) => {
     try {
       const response = await api.get(`/projects/${projectId}/phases`);
       return response.data;
@@ -107,46 +107,33 @@ export const useProjectService = () => {
       console.error(`获取项目 ${projectId} 阶段失败:`, error);
       throw error;
     }
-  };
+  },
 
   /**
    * 订阅项目
    * @param {string} projectId - 项目ID
    * @returns {Promise<void>}
    */
-  const subscribeProject = async (projectId) => {
+  subscribeProject: async (projectId) => {
     try {
       await api.post(`/projects/${projectId}/subscribe`);
     } catch (error) {
       console.error(`订阅项目 ${projectId} 失败:`, error);
       throw error;
     }
-  };
+  },
 
   /**
    * 取消订阅项目
    * @param {string} projectId - 项目ID
    * @returns {Promise<void>}
    */
-  const unsubscribeProject = async (projectId) => {
+  unsubscribeProject: async (projectId) => {
     try {
       await api.delete(`/projects/${projectId}/subscribe`);
     } catch (error) {
       console.error(`取消订阅项目 ${projectId} 失败:`, error);
       throw error;
     }
-  };
-
-  return {
-    getAllProjects,
-    getProjectById,
-    createProject,
-    updateProject,
-    deleteProject,
-    getProjectPhases,
-    subscribeProject,
-    unsubscribeProject
-  };
+  }
 };
-
-export default useProjectService;
