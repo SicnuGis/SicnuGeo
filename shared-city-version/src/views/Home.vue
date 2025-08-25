@@ -48,6 +48,7 @@
 
 <script>
 import { projectService } from '@/services/project.service'
+import { useProjectStore } from '@/store/index'
 
 export default {
   data() {
@@ -55,9 +56,13 @@ export default {
       projects: []
     }
   },
+  created() {
+    // 初始化Pinia store实例
+    this.projectStore = useProjectStore()
+  },
   computed: {
     recentProjects() {
-      const allProjects = this.$store.getters.getAllProjects()
+      const allProjects = this.projectStore.getAllProjects
       // 按创建时间降序排序，取前3个
       return [...allProjects].sort((a, b) => {
         return new Date(b.createdAt || b.startDate) - new Date(a.createdAt || a.startDate)
@@ -72,8 +77,8 @@ export default {
       try {
         const data = await projectService.getAllProjects()
         this.projects = data
-        // 更新Vuex store
-        this.$store.dispatch('setProjects', data)
+        // 更新Pinia store
+        this.projectStore.setProjects(data)
       } catch (error) {
         console.error('加载项目列表失败:', error)
       }

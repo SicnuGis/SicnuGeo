@@ -1,9 +1,17 @@
 import Vue from 'vue'
 import App from './APP.vue'
 import router from './router'
-import store from './store'
 import ElementUI from 'element-ui'
 import 'element-ui/lib/theme-chalk/index.css'
+
+// 引入 Pinia
+import { createPinia, PiniaVuePlugin } from 'pinia';
+
+// 安装 Pinia 插件
+Vue.use(PiniaVuePlugin);
+
+// 创建 Pinia 实例
+const pinia = createPinia();
 
 // 导入工具类
 import * as CesiumHelper from './utils/cesium.helper'
@@ -21,7 +29,7 @@ Vue.config.productionTip = false
 //创建vue根实例
 new Vue({
   router,//注入路由
-  store,//注入状态管理
+  pinia,//注入 Pinia 状态管理
   render: h => h(App)//渲染根组件
 }).$mount('#app')
 

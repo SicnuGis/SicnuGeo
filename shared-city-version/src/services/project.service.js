@@ -1,5 +1,5 @@
 import axios from 'axios';
-import store from '@/store/index';
+import { useUserStore } from '@/store/index';
 
 // 创建axios实例
 const api = axios.create({
@@ -9,7 +9,10 @@ const api = axios.create({
 
 // 请求拦截器，添加认证token
 api.interceptors.request.use(config => {
-  const token = store.state.userStore.token;
+  // 在请求拦截器中使用Pinia store
+  // 注意：这里需要使用函数包装，因为拦截器是在应用初始化时创建的
+  const userStore = useUserStore();
+  const token = userStore.token;
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
@@ -53,7 +56,7 @@ export const projectService = {
    * 创建项目
    * @param {Object} projectData - 项目数据
    * @returns {Promise<Object>} 创建的项目
-   */
+6   */
   createProject: async (projectData) => {
     try {
       const response = await api.post('/projects', projectData);
