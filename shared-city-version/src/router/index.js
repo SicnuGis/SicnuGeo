@@ -4,7 +4,8 @@ import VueRouter from 'vue-router'
 // 导入组件
 import Home from '../views/Home.vue'
 import About from '../views/About.vue'
-import ProjectAdmin from '../components/ProjectAdmin.vue'
+import ProjectAdmin from '../views/ProjectAdmin.vue'
+import SubscribedProjects from '../views/SubscribedProjects.vue'
 import ProjectTimeLine from '../components/charts/ProjectTimeLine.vue'
 import Login from '../views/Login.vue'
 import ProjectMapEditor from '@/components/gis/ProjectMapEditor.vue'
@@ -46,6 +47,11 @@ const routes = [
     path: '/projects/:id',
     name: 'ProjectDetail',
     component: ProjectTimeLine
+  },
+  {
+    path: '/subscribed-projects',
+    name: 'SubscribedProjects',
+    component: SubscribedProjects
   }
 ]
 

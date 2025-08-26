@@ -15,7 +15,7 @@
         <h2>核心功能</h2>
         <ul>
           <li><span class="feature-icon">📊</span> 项目甘特图：直观展示项目进度和时间线</li>
-          <li><span class="feature-icon">🗺️</span> GIS可视化：结合Cesium实现地理信息可视化</li>
+          <li><span class="feature-icon">🗺️</span> GIS可视化：结合Esri API实现地理信息可视化</li>
           <li><span class="feature-icon">🔔</span> 项目订阅：及时获取项目最新进展和变更通知</li>
           <li><span class="feature-icon">👥</span> 团队协作：支持多用户协同管理项目</li>
           <li><span class="feature-icon">📈</span> 数据分析：提供项目数据统计和分析功能</li>
@@ -39,9 +39,9 @@
         <h2>联系我们</h2>
         <p>如果您有任何问题或建议，欢迎联系我们：</p>
         <ul class="contact-info">
-          <li>邮箱：contact@sharedcity.com</li>
-          <li>电话：400-123-4567</li>
-          <li>地址：北京市海淀区科技园路100号</li>
+          <li>邮箱：xxx</li>
+          <li>电话：xxx</li>
+          <li>地址：xxx</li>
         </ul>
       </div>
     </div>

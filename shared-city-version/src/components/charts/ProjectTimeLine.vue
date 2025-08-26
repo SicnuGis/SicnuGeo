@@ -49,10 +49,17 @@ import * as echarts from 'echarts'
 import { useProjectService } from '@/services/project.service'
 
 export default {
+  props: {
+    // 优先使用父组件传入的项目ID；未传入时回退到路由参数
+    projectId: {
+      type: [String, Number],
+      default: ''
+    }
+  },
   data() {
     return {
-      // 项目ID，从路由参数获取
-      projectId: this.$route.params.id || '',
+      // 路由参数中的项目ID（作为回退）
+      routeProjectId: this.$route?.params?.id || '',
       
       // 状态
       projectPhases: [],
@@ -69,9 +76,14 @@ export default {
   },
   
   computed: {
+    // 实际使用的项目ID：优先 props，其次路由参数
+    effectiveProjectId() {
+      return this.projectId || this.routeProjectId || ''
+    },
     // 计算属性 - 检查是否订阅
     isSubscribed() {
-      return this.$store.getters.isProjectSubscribed(this.projectId)
+      if (!this.$store || !this.$store.getters) return false
+      return this.$store.getters.isProjectSubscribed(this.effectiveProjectId)
     }
   },
   
@@ -115,43 +127,67 @@ export default {
         }
       },
       deep: true
+    },
+    // 当外部传入的 projectId 变化时，重新加载数据
+    projectId() {
+      this.loadProjectData()
     }
   },
   
   methods: {
-    // 加载项目数据
+    // 加载项目数据（分步容错：项目详情失败才提示，阶段/评论失败不阻塞）
     async loadProjectData() {
+      const id = this.effectiveProjectId
+      if (!id) {
+        console.warn('未提供项目ID，无法加载时间线数据')
+        return
+      }
       try {
         // 获取项目详情
-        const project = await this.projectService.getProjectById(this.projectId)
+        const project = await this.projectService.getProjectById(id)
         this.projectName = project.name
 
-        // 获取项目阶段
-        const phases = await this.projectService.getProjectPhases(this.projectId)
-        this.projectPhases = phases
+        // 并行获取阶段与评论，任何一个失败都不阻塞另一个
+        const [phasesRes, commentsRes] = await Promise.allSettled([
+          this.projectService.getProjectPhases(id),
+          this.projectService.getProjectComments(id)
+        ])
 
-        // 获取评论
-        this.comments = await this.projectService.getProjectComments(this.projectId)
+        if (phasesRes.status === 'fulfilled') {
+          this.projectPhases = phasesRes.value || []
+        } else {
+          console.warn('项目阶段接口不可用或返回错误，使用空阶段渲染', phasesRes.reason)
+          this.projectPhases = []
+        }
+
+        if (commentsRes.status === 'fulfilled') {
+          this.comments = commentsRes.value || []
+        } else {
+          console.warn('项目评论接口不可用或返回错误，使用空评论', commentsRes.reason)
+          this.comments = []
+        }
 
         // 更新Vuex store
         this.$store && this.$store.dispatch && this.$store.dispatch('setProjects', [project])
         this.$store && this.$store.dispatch && this.$store.dispatch('setSelectedProject', project)
       } catch (error) {
         console.error('加载项目数据失败:', error)
-        // 显示错误提示
+        // 显示错误提示（仅在项目详情失败时触发）
         alert('加载项目数据失败，请重试')
       }
     },
 
     // 切换订阅状态
     async toggleSubscription() {
+      const id = this.effectiveProjectId
+      if (!id) return
       try {
         if (this.isSubscribed) {
-          await this.projectService.unsubscribeProject(this.projectId)
-          this.$store.dispatch('unsubscribeProject', this.projectId)
+          await this.projectService.unsubscribeProject(id)
+          this.$store && this.$store.dispatch && this.$store.dispatch('unsubscribeProject', id)
         } else {
-          await this.projectService.subscribeProject(this.projectId)
-          this.$store.dispatch('subscribeProject', this.projectId)
+          await this.projectService.subscribeProject(id)
+          this.$store && this.$store.dispatch && this.$store.dispatch('subscribeProject', id)
         }
       } catch (error) {
         console.error('切换订阅状态失败:', error)
@@ -367,11 +403,12 @@ export default {
       return `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}-${date.getDate().toString().padStart(2, '0')}`
     },
     async submitComment() {
-      if (!this.newComment) return
+      const id = this.effectiveProjectId
+      if (!this.newComment || !id) return
       try {
-        await this.projectService.addProjectComment(this.projectId, { content: this.newComment })
+        await this.projectService.addProjectComment(id, { content: this.newComment })
         this.newComment = ''
-        this.comments = await this.projectService.getProjectComments(this.projectId)
+        this.comments = await this.projectService.getProjectComments(id)
       } catch (e) {
         alert('发表评论失败，请重试')
       }

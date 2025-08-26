@@ -3,6 +3,8 @@ import App from './APP.vue'
 import router from './router'
 import ElementUI from 'element-ui'
 import 'element-ui/lib/theme-chalk/index.css'
+import 'maplibre-gl/dist/maplibre-gl.css'
+import '@arcgis/core/assets/esri/themes/light/main.css'
 
 // 引入 Pinia
 import { createPinia, PiniaVuePlugin } from 'pinia';

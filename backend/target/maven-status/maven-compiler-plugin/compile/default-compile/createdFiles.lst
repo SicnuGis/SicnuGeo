@@ -1,0 +1,10 @@
+com\sicnu\geo\entity\FeatureDocument.class
+com\sicnu\geo\controller\ProjectController.class
+com\sicnu\geo\controller\FeatureController.class
+com\sicnu\geo\repository\CommentRepository.class
+com\sicnu\geo\repository\ProjectRepository.class
+com\sicnu\geo\SicnuGeoApplication.class
+com\sicnu\geo\entity\Project.class
+com\sicnu\geo\repository\FeatureDocumentRepository.class
+com\sicnu\geo\controller\CommentController.class
+com\sicnu\geo\entity\Comment.class

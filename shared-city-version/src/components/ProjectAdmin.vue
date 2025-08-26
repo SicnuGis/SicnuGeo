@@ -10,6 +10,14 @@
       <el-table :data="projects" style="width: 100%">
         <el-table-column prop="id" label="项目ID" width="80"></el-table-column>
         <el-table-column prop="name" label="项目名称" width="200"></el-table-column>
+        <el-table-column label="项目分类" width="120">
+          <template #default="scope">
+            <span v-if="scope.row.category">
+              {{ getCategoryLabel(scope.row.category) }}
+            </span>
+            <span v-else class="text-muted">未分类</span>
+          </template>
+        </el-table-column>
         <el-table-column prop="description" label="项目描述"></el-table-column>
         <el-table-column prop="startDate" label="开始日期" width="120"></el-table-column>
         <el-table-column prop="endDate" label="结束日期" width="120"></el-table-column>
@@ -39,8 +47,64 @@
         <el-form-item label="结束日期" prop="endDate" :rules="[{ required: true, message: '请选择结束日期' }]">
           <el-date-picker v-model="formData.endDate" type="date"></el-date-picker>
         </el-form-item>
+        <el-form-item label="项目分类" prop="category" :rules="[{ required: true, message: '请选择项目分类' }]">
+          <el-select v-model="formData.category" placeholder="请选择项目分类">
+            <el-option 
+              v-for="category in categories" 
+              :key="category.value" 
+              :label="category.label" 
+              :value="category.value"
+            >
+              <span :style="{ color: category.color }">{{ category.icon }}</span>
+              {{ category.label }}
+            </el-option>
+          </el-select>
+        </el-form-item>
+        <el-form-item label="负责人" prop="manager" :rules="[{ required: true, message: '请输入负责人姓名' }]">
+          <el-input v-model="formData.manager" placeholder="请输入负责人姓名"></el-input>
+        </el-form-item>
+        <el-form-item label="项目地址" prop="address">
+          <el-input v-model="formData.address" placeholder="请输入项目地址"></el-input>
+        </el-form-item>
+        <el-form-item label="投资金额" prop="investment">
+          <el-input-number v-model="formData.investment" :min="0" :step="1000" placeholder="万元"></el-input-number>
+        </el-form-item>
+        <el-form-item label="项目书" prop="documents">
+          <el-upload
+            class="upload-demo"
+            :action="uploadUrl"
+            :on-success="handleDocumentSuccess"
+            :on-remove="handleDocumentRemove"
+            :file-list="formData.documents"
+            accept=".pdf,.doc,.docx"
+            :limit="3"
+          >
+            <el-button size="small" type="primary">上传项目书</el-button>
+            <template #tip>
+              <div class="el-upload__tip">只能上传PDF/Word文件，且不超过10MB</div>
+            </template>
+          </el-upload>
+        </el-form-item>
+        <el-form-item label="SHP文件" prop="shpFiles">
+          <el-upload
+            class="upload-demo"
+            :action="uploadUrl"
+            :on-success="handleShpSuccess"
+            :on-remove="handleShpRemove"
+            :file-list="formData.shpFiles"
+            accept=".shp,.shx,.dbf,.prj"
+            multiple
+            :limit="10"
+          >
+            <el-button size="small" type="primary">上传SHP文件</el-button>
+            <template #tip>
+              <div class="el-upload__tip">请上传完整的SHP文件集（.shp, .shx, .dbf, .prj等）</div>
+            </template>
+          </el-upload>
+        </el-form-item>
         <el-form-item label="项目状态" prop="status">
           <el-select v-model="formData.status">
+            <el-option label="规划中" value="planning"></el-option>
             <el-option label="未开始" value="notStarted"></el-option>
             <el-option label="进行中" value="inProgress"></el-option>
             <el-option label="已完成" value="completed"></el-option>
@@ -58,6 +122,7 @@
 
 <script>
 import { projectService } from '@/services/project.service'
+import { getAllCategoryOptions } from '@/services/category.service'
 import { useUserStore } from '@/store/index'
 
 export default {
@@ -66,14 +131,24 @@ export default {
       projects: [],
       showAddDialog: false,
       isEditing: false,
+      categories: [],
+      uploadUrl: '/api/upload', // 文件上传接口
       formData: {
         id: '',
         name: '',
         description: '',
         startDate: '',
         endDate: '',
-        status: 'notStarted'
-      },
+        status: 'planning',
+        category: '',
+        manager: '',
+        address: '',
+        investment: 0,
+        documents: [],
+        shpFiles: []
+      }
+    }
+  },
       userStore: null
     }
   },
@@ -84,9 +159,19 @@ export default {
   },
   mounted() {
     this.userStore = useUserStore()
+    this.loadCategories()
     this.loadProjects()
   },
   methods: {
+    loadCategories() {
+      this.categories = getAllCategoryOptions()
+    },
+    
+    getCategoryLabel(categoryValue) {
+      const category = this.categories.find(c => c.value === categoryValue)
+      return category ? category.label : categoryValue
+    },
+    
     async loadProjects() {
       try {
         const data = await projectService.getAllProjects()
@@ -167,9 +252,50 @@ export default {
         description: '',
         startDate: '',
         endDate: '',
-        status: 'notStarted'
+        status: 'planning',
+        category: '',
+        manager: '',
+        address: '',
+        investment: 0,
+        documents: [],
+        shpFiles: []
       }
       this.isEditing = false
+    },
+
+    // 文件上传处理方法
+    handleDocumentSuccess(response, file, fileList) {
+      this.formData.documents = fileList.map(f => ({
+        name: f.name,
+        type: 'project_proposal',
+        uploadTime: new Date().toISOString(),
+        url: f.response?.url || f.url
+      }))
+    },
+
+    handleDocumentRemove(file, fileList) {
+      this.formData.documents = fileList.map(f => ({
+        name: f.name,
+        type: 'project_proposal',
+        uploadTime: new Date().toISOString(),
+        url: f.response?.url || f.url
+      }))
+    },
+
+    handleShpSuccess(response, file, fileList) {
+      this.formData.shpFiles = fileList.map(f => ({
+        name: f.name,
+        uploadTime: new Date().toISOString(),
+        url: f.response?.url || f.url
+      }))
+    },
+
+    handleShpRemove(file, fileList) {
+      this.formData.shpFiles = fileList.map(f => ({
+        name: f.name,
+        uploadTime: new Date().toISOString(),
+        url: f.response?.url || f.url
+      }))
     }
   }
 }

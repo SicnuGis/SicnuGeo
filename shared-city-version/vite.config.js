@@ -7,6 +7,9 @@ import path from 'path'
 // 兼容 ESM，定义 __dirname
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
+// 是否启用内置 Mock，中短期改为 false 使用真实后端
+const ENABLE_MOCK = false
+
 // 简易 Mock 插件：模拟 /api/projects 及其子路由
 function mockApiPlugin() {
   return {
@@ -117,16 +120,25 @@ function mockApiPlugin() {
 export default defineConfig({
   plugins: [
     vue(),
-    mockApiPlugin()
+    // 仅当需要本地 Mock 时启用
+    ...(ENABLE_MOCK ? [mockApiPlugin()] : [])
   ],
   resolve: {
     alias: {
       '@': fileURLToPath(new URL('./src', import.meta.url))
     }
   },
+  optimizeDeps: {
+    exclude: ['@arcgis/core']
+  },
   server: {
     port: 8080,
     open: true,
-    proxy: {}
+    proxy: {
+      '/api': {
+        target: 'http://localhost:8085',
+        changeOrigin: true
+      }
+    }
   }
 })

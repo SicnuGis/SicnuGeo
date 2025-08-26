@@ -2,28 +2,187 @@
   {
     "id": "1",
     "name": "智慧城市建设项目",
-    "description": "城市基础设施智能化改造项目",
+    "description": "城市基础设施智能化改造项目，包括智能交通、智慧照明、环境监测等系统的建设",
+    "category": "PUBLIC_FACILITIES",
+    "categoryLabel": "公共设施工程",
+    "manager": "张建国",
     "startDate": "2023-01-15",
     "endDate": "2023-12-31",
     "status": "inProgress",
-    "createdAt": "2023-01-01"
+    "createdAt": "2023-01-01",
+    "projectCreatedAt": "2023-01-01T09:00:00",
+    "location": {
+      "lat": 23.1291,
+      "lng": 113.2644,
+      "address": "广州市天河区珠江新城"
+    },
+    "documents": [
+      {
+        "name": "智慧城市建设项目书.pdf",
+        "type": "project_proposal",
+        "uploadTime": "2023-01-01T09:30:00"
+      }
+    ],
+    "shpFiles": [
+      {
+        "name": "project_area.shp",
+        "uploadTime": "2023-01-02T10:00:00"
+      }
+    ]
   },
   {
     "id": "2",
     "name": "公共交通优化工程",
-    "description": "城市公共交通系统升级与优化",
+    "description": "城市公共交通系统升级与优化，包括地铁线路扩建、公交站点改造、智能调度系统建设",
+    "category": "ROAD_TRAFFIC",
+    "categoryLabel": "道路交通工程",
+    "manager": "李明华",
     "startDate": "2023-03-01",
     "endDate": "2023-10-31",
     "status": "inProgress",
-    "createdAt": "2023-02-15"
+    "createdAt": "2023-02-15",
+    "projectCreatedAt": "2023-02-15T14:30:00",
+    "location": {
+      "lat": 23.1167,
+      "lng": 113.2500,
+      "address": "广州市越秀区中山路"
+    },
+    "documents": [
+      {
+        "name": "公共交通优化工程项目书.pdf",
+        "type": "project_proposal",
+        "uploadTime": "2023-02-15T15:00:00"
+      }
+    ],
+    "shpFiles": [
+      {
+        "name": "traffic_routes.shp",
+        "uploadTime": "2023-02-16T09:00:00"
+      }
+    ]
   },
   {
     "id": "3",
     "name": "城市绿化提升计划",
-    "description": "城市公园和绿化带建设项目",
+    "description": "城市公园和绿化带建设项目，提升城市生态环境质量，增加绿化覆盖率",
+    "category": "LANDSCAPE_GREENING",
+    "categoryLabel": "园林绿化工程",
+    "manager": "王芳",
     "startDate": "2023-02-01",
     "endDate": "2023-08-31",
     "status": "completed",
-    "createdAt": "2023-01-15"
+    "createdAt": "2023-01-15",
+    "projectCreatedAt": "2023-01-15T11:00:00",
+    "location": {
+      "lat": 23.1350,
+      "lng": 113.2800,
+      "address": "广州市天河区体育中心"
+    },
+    "documents": [
+      {
+        "name": "城市绿化提升计划项目书.pdf",
+        "type": "project_proposal",
+        "uploadTime": "2023-01-15T11:30:00"
+      }
+    ],
+    "shpFiles": [
+      {
+        "name": "green_areas.shp",
+        "uploadTime": "2023-01-16T08:30:00"
+      }
+    ]
+  },
+  {
+    "id": "4",
+    "name": "污水处理厂升级改造",
+    "description": "现有污水处理厂设备升级改造，提高处理能力和出水水质标准",
+    "category": "WATER_SUPPLY_DRAINAGE",
+    "categoryLabel": "给排水工程",
+    "manager": "陈志强",
+    "startDate": "2023-04-01",
+    "endDate": "2023-11-30",
+    "status": "inProgress",
+    "createdAt": "2023-03-20",
+    "projectCreatedAt": "2023-03-20T16:00:00",
+    "location": {
+      "lat": 23.0800,
+      "lng": 113.2200,
+      "address": "广州市海珠区工业大道"
+    },
+    "documents": [
+      {
+        "name": "污水处理厂升级改造项目书.pdf",
+        "type": "project_proposal",
+        "uploadTime": "2023-03-20T16:30:00"
+      }
+    ],
+    "shpFiles": [
+      {
+        "name": "sewage_plant_area.shp",
+        "uploadTime": "2023-03-21T10:00:00"
+      }
+    ]
+  },
+  {
+    "id": "5",
+    "name": "垃圾分类处理中心建设",
+    "description": "新建垃圾分类处理中心，实现垃圾减量化、资源化、无害化处理",
+    "category": "ENVIRONMENTAL_SANITATION",
+    "categoryLabel": "环境卫生工程",
+    "manager": "刘德华",
+    "startDate": "2023-05-01",
+    "endDate": "2024-02-29",
+    "status": "planning",
+    "createdAt": "2023-04-10",
+    "projectCreatedAt": "2023-04-10T13:30:00",
+    "location": {
+      "lat": 23.1500,
+      "lng": 113.3000,
+      "address": "广州市黄埔区科学城"
+    },
+    "documents": [
+      {
+        "name": "垃圾分类处理中心建设项目书.pdf",
+        "type": "project_proposal",
+        "uploadTime": "2023-04-10T14:00:00"
+      }
+    ],
+    "shpFiles": [
+      {
+        "name": "waste_center_area.shp",
+        "uploadTime": "2023-04-11T09:30:00"
+      }
+    ]
+  },
+  {
+    "id": "6",
+    "name": "河涌综合治理工程",
+    "description": "城市河涌水环境综合治理，包括清淤、护岸、生态修复等工程",
+    "category": "WATER_CONSERVANCY",
+    "categoryLabel": "水利工程",
+    "manager": "周建军",
+    "startDate": "2023-06-01",
+    "endDate": "2024-05-31",
+    "status": "inProgress",
+    "createdAt": "2023-05-15",
+    "projectCreatedAt": "2023-05-15T10:15:00",
+    "location": {
+      "lat": 23.1100,
+      "lng": 113.2300,
+      "address": "广州市荔湾区珠江河段"
+    },
+    "documents": [
+      {
+        "name": "河涌综合治理工程项目书.pdf",
+        "type": "project_proposal",
+        "uploadTime": "2023-05-15T10:45:00"
+      }
+    ],
+    "shpFiles": [
+      {
+        "name": "river_treatment_area.shp",
+        "uploadTime": "2023-05-16T08:00:00"
+      }
+    ]
   }
 ]

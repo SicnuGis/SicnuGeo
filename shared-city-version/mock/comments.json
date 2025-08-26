@@ -1,0 +1,151 @@
+[
+  {
+    "id": "1",
+    "projectId": "1",
+    "userId": "user001",
+    "userName": "李工程师",
+    "userAvatar": "https://via.placeholder.com/40x40/4CAF50/FFFFFF?text=李",
+    "content": "这个智慧城市项目的规划很全面，特别是智能交通系统的设计很有前瞻性。希望能尽快看到实施效果。",
+    "createdAt": "2023-11-15T10:30:00",
+    "likes": 12,
+    "replies": [
+      {
+        "id": "r1",
+        "userId": "user002",
+        "userName": "张建国",
+        "userAvatar": "https://via.placeholder.com/40x40/2196F3/FFFFFF?text=张",
+        "content": "感谢您的关注！我们会按计划推进，预计年底前完成第一阶段的建设。",
+        "createdAt": "2023-11-15T14:20:00",
+        "likes": 5
+      }
+    ]
+  },
+  {
+    "id": "2",
+    "projectId": "1",
+    "userId": "user003",
+    "userName": "市民王先生",
+    "userAvatar": "https://via.placeholder.com/40x40/FF9800/FFFFFF?text=王",
+    "content": "作为附近的居民，很期待这个项目能改善我们的生活环境。请问智慧照明系统什么时候能投入使用？",
+    "createdAt": "2023-11-16T09:15:00",
+    "likes": 8,
+    "replies": []
+  },
+  {
+    "id": "3",
+    "projectId": "2",
+    "userId": "user004",
+    "userName": "交通专家陈博士",
+    "userAvatar": "https://via.placeholder.com/40x40/9C27B0/FFFFFF?text=陈",
+    "content": "公共交通优化工程的技术方案很科学，智能调度系统的引入将大大提高运营效率。建议在实施过程中加强与市民的沟通。",
+    "createdAt": "2023-11-14T16:45:00",
+    "likes": 15,
+    "replies": [
+      {
+        "id": "r2",
+        "userId": "user005",
+        "userName": "李明华",
+        "userAvatar": "https://via.placeholder.com/40x40/4CAF50/FFFFFF?text=李",
+        "content": "您的建议很中肯，我们已经制定了详细的公众参与计划，会定期举办说明会。",
+        "createdAt": "2023-11-14T18:30:00",
+        "likes": 7
+      }
+    ]
+  },
+  {
+    "id": "4",
+    "projectId": "2",
+    "userId": "user006",
+    "userName": "上班族小刘",
+    "userAvatar": "https://via.placeholder.com/40x40/F44336/FFFFFF?text=刘",
+    "content": "希望地铁扩建工程能尽快完工，现在早高峰真的太拥挤了。工程期间会不会影响现有线路的运营？",
+    "createdAt": "2023-11-17T08:20:00",
+    "likes": 23,
+    "replies": []
+  },
+  {
+    "id": "5",
+    "projectId": "3",
+    "userId": "user007",
+    "userName": "环保志愿者小张",
+    "userAvatar": "https://via.placeholder.com/40x40/4CAF50/FFFFFF?text=张",
+    "content": "城市绿化项目完成得很好！新建的公园空气清新，孩子们有了更好的游玩场所。希望后续维护工作也能跟上。",
+    "createdAt": "2023-11-10T19:30:00",
+    "likes": 18,
+    "replies": [
+      {
+        "id": "r3",
+        "userId": "user008",
+        "userName": "王芳",
+        "userAvatar": "https://via.placeholder.com/40x40/E91E63/FFFFFF?text=王",
+        "content": "谢谢您的认可！我们已经建立了专业的养护团队，确保绿化效果长期保持。",
+        "createdAt": "2023-11-11T09:00:00",
+        "likes": 6
+      }
+    ]
+  },
+  {
+    "id": "6",
+    "projectId": "4",
+    "userId": "user009",
+    "userName": "环境工程师老李",
+    "userAvatar": "https://via.placeholder.com/40x40/607D8B/FFFFFF?text=李",
+    "content": "污水处理厂的升级改造很有必要，新的处理工艺能大幅提升出水水质。建议公开处理效果的监测数据。",
+    "createdAt": "2023-11-12T14:15:00",
+    "likes": 11,
+    "replies": []
+  },
+  {
+    "id": "7",
+    "projectId": "5",
+    "userId": "user010",
+    "userName": "社区代表赵女士",
+    "userAvatar": "https://via.placeholder.com/40x40/795548/FFFFFF?text=赵",
+    "content": "垃圾分类处理中心的建设很重要，但希望能做好环保措施，不要影响周边居民的生活。",
+    "createdAt": "2023-11-13T11:45:00",
+    "likes": 14,
+    "replies": [
+      {
+        "id": "r4",
+        "userId": "user011",
+        "userName": "刘德华",
+        "userAvatar": "https://via.placeholder.com/40x40/3F51B5/FFFFFF?text=刘",
+        "content": "我们非常重视环保问题，采用了最先进的除臭和降噪技术，并会定期进行环境监测。",
+        "createdAt": "2023-11-13T15:20:00",
+        "likes": 9
+      }
+    ]
+  },
+  {
+    "id": "8",
+    "projectId": "6",
+    "userId": "user012",
+    "userName": "水利专家孙教授",
+    "userAvatar": "https://via.placeholder.com/40x40/009688/FFFFFF?text=孙",
+    "content": "河涌治理工程的生态修复方案很科学，既解决了水质问题，又保护了生物多样性。这是可持续发展的典型案例。",
+    "createdAt": "2023-11-18T13:30:00",
+    "likes": 20,
+    "replies": []
+  },
+  {
+    "id": "9",
+    "projectId": "6",
+    "userId": "user013",
+    "userName": "钓鱼爱好者老王",
+    "userAvatar": "https://via.placeholder.com/40x40/FF5722/FFFFFF?text=王",
+    "content": "以前这条河水质很差，现在治理后清澈了很多，鱼儿也回来了。希望能继续保持这个效果。",
+    "createdAt": "2023-11-19T07:45:00",
+    "likes": 16,
+    "replies": [
+      {
+        "id": "r5",
+        "userId": "user014",
+        "userName": "周建军",
+        "userAvatar": "https://via.placeholder.com/40x40/8BC34A/FFFFFF?text=周",
+        "content": "看到治理效果得到认可很高兴！我们会建立长效管理机制，确保水质持续改善。",
+        "createdAt": "2023-11-19T10:15:00",
+        "likes": 8
+      }
+    ]
+  }
+]

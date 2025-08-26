@@ -2,6 +2,25 @@
   <div class="project-admin">
     <div class="admin-header">
       <h1>项目管理</h1>
+      <div class="search-section">
+        <input 
+          v-model="searchQuery" 
+          type="text" 
+          placeholder="搜索项目名称或分类..." 
+          class="search-input"
+          @input="handleSearch"
+        />
+        <select v-model="selectedCategory" @change="handleSearch" class="category-select">
+          <option value="">全部分类</option>
+          <option value="smart_city">智慧城市</option>
+          <option value="transportation">交通运输</option>
+          <option value="environment">环境保护</option>
+          <option value="energy">能源电力</option>
+          <option value="water_conservancy">水利工程</option>
+          <option value="construction">建筑工程</option>
+          <option value="municipal">市政工程</option>
+        </select>
+      </div>
       <button class="btn-add-project" @click="showAddProjectForm">添加新项目</button>
     </div>
 
@@ -15,7 +34,7 @@
         <div class="header-item">结束日期</div>
         <div class="header-item">操作</div>
       </div>
-      <div v-for="project in projects" :key="project.id" class="project-item">
+      <div v-for="project in filteredProjects" :key="project.id" class="project-item">
         <div class="item-content">{{ project.name }}</div>
         <div class="item-content">{{ project.manager }}</div>
         <div class="item-content">
@@ -36,7 +55,7 @@
       <div class="modal">
         <div class="modal-header">
           <h2>项目详情 - {{ selectedProject?.name }}</h2>
-          <button @click="showDetail = false">关闭</button>
+          <button class="btn-close" @click="showDetail = false">关闭</button>
         </div>
         <div class="modal-body">
           <div v-if="selectedProject" class="project-detail">
@@ -50,71 +69,41 @@
             </div>
             <div class="detail-section">
               <h3>项目描述</h3>
-              <p>{{ selectedProject.description }}</p>
+              <div class="rich-text" v-text="selectedProject.description"></div>
+            </div>
+            <div class="detail-section">
+              <h3>空间分析</h3>
+              <ArcgisAnalysisPanel :project-id="selectedProject.id" :center="normalizeCenter(selectedProject)" :zoom="12" />
             </div>
             <div class="detail-section">
               <h3>项目进度</h3>
-              <ProjectTimeLine :project-id="selectedProject.id" />
+              <ProjectGantt :project-id="selectedProject.id" />
             </div>
             <div class="detail-section">
-              <h3>项目位置</h3>
-              <CesiumViewer :location="selectedProject.location" />
+              <h3>项目评论</h3>
+              <ProjectComments :project-id="selectedProject.id" />
             </div>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- 添加/编辑项目表单 -->
+    <!-- 添加/编辑项目表单（内嵌地图编辑器） -->
     <div v-if="showForm" class="modal-overlay">
-      <div class="modal">
+      <div class="modal modal-wide">
         <div class="modal-header">
           <h2>{{ isEditing ? '编辑项目' : '添加新项目' }}</h2>
-          <button @click="showForm = false">关闭</button>
+          <button class="btn-close" @click="showForm = false">关闭</button>
         </div>
         <div class="modal-body">
-          <form @submit.prevent="submitProjectForm">
-            <div class="form-group">
-              <label for="projectName">项目名称</label>
-              <input type="text" id="projectName" v-model="formData.name" required>
-            </div>
-            <div class="form-group">
-              <label for="projectManager">负责人</label>
-              <input type="text" id="projectManager" v-model="formData.manager" required>
-            </div>
-            <div class="form-group">
-              <label for="projectStatus">状态</label>
-              <select id="projectStatus" v-model="formData.status" required>
-                <option value="planning">规划中</option>
-                <option value="inProgress">进行中</option>
-                <option value="completed">已完成</option>
-                <option value="onHold">暂停</option>
-              </select>
-            </div>
-            <div class="form-group">
-              <label for="projectStartDate">开始日期</label>
-              <input type="date" id="projectStartDate" v-model="formData.startDate" required>
-            </div>
-            <div class="form-group">
-              <label for="projectEndDate">结束日期</label>
-              <input type="date" id="projectEndDate" v-model="formData.endDate" required>
-            </div>
-            <div class="form-group">
-              <label for="projectDescription">项目描述</label>
-              <textarea id="projectDescription" v-model="formData.description"></textarea>
-            </div>
-            <div class="form-group">
-              <label for="projectLocation">项目位置</label>
-              <div class="location-picker">
-                <CesiumViewer @location-selected="onLocationSelected" />
-                <input type="text" id="projectLocation" v-model="formData.location" readonly>
-              </div>
-            </div>
-            <div class="form-actions">
-              <button type="submit" class="btn-submit">{{ isEditing ? '更新' : '创建' }}</button>
-              <button type="button" @click="showForm = false">取消</button>
-            </div>
-          </form>
+          <ProjectMapEditor
+            :embed="true"
+            height="560px"
+            :mode-prop="isEditing ? 'edit' : 'create'"
+            :project-id-prop="selectedProject?.id || null"
+            @saved="onEditorSaved"
+            @cancel="showForm = false"
+          />
         </div>
       </div>
     </div>
@@ -122,60 +111,35 @@
 </template>
 
 <script>
-import { defineComponent, ref, onMounted } from 'vue';
-import { useRouter } from 'vue-router';
-import ProjectTimeLine from '@/components/charts/ProjectTimeLine.vue';
-import CesiumViewer from '@/components/CesiumViewer.vue';
-import projectService from '@/services/project.service';
+import ProjectGantt from '@/components/charts/ProjectGantt.vue';
+// import CesiumViewer from '@/components/gis/CesiumViewer.vue';
+import { projectService } from '@/services/project.service';
+import { getCategoryLabel } from '@/services/category.service';
+import ArcgisAnalysisPanel from '@/components/ArcgisAnalysisPanel.vue';
+import ProjectMapEditor from '@/components/gis/ProjectMapEditor.vue';
+import ProjectComments from '@/components/ProjectComments.vue';
+import { parseShpFiles, validateShpFiles, getShpStatistics } from '@/services/shp.service';
 
-export default defineComponent({
+export default {
   name: 'ProjectAdmin',
   components: {
-    ProjectTimeLine,
-    CesiumViewer
+    ProjectGantt,
+    // CesiumViewer,
+    ArcgisAnalysisPanel,
+    ProjectMapEditor,
+    ProjectComments
   },
-  setup() {
-    const router = useRouter();
-    const projects = ref([]);
-    const showDetail = ref(false);
-    const showForm = ref(false);
-    const isEditing = ref(false);
-    const selectedProject = ref(null);
-    const formData = ref({
-      name: '',
-      manager: '',
-      status: 'planning',
-      startDate: '',
-      endDate: '',
-      description: '',
-      location: ''
-    });
-
-    // 加载项目列表
-    const loadProjects = async () => {
-      try {
-        const data = await projectService.getAllProjects();
-        projects.value = data;
-      } catch (error) {
-        console.error('Failed to load projects:', error);
-      }
-    };
-
-    // 查看项目详情
-    const viewProjectDetail = async (id) => {
-      try {
-        const data = await projectService.getProjectById(id);
-        selectedProject.value = data;
-        showDetail.value = true;
-      } catch (error) {
-        console.error('Failed to load project detail:', error);
-      }
-    };
-
-    // 显示添加项目表单
-    const showAddProjectForm = () => {
-      isEditing.value = false;
-      formData.value = {
+  data() {
+    return {
+      projects: [],
+      filteredProjects: [],
+      searchQuery: '',
+      selectedCategory: '',
+      showDetail: false,
+      showForm: false,
+      isEditing: false,
+      selectedProject: null,
+      formData: {
         name: '',
         manager: '',
         status: 'planning',
@@ -183,308 +147,560 @@ export default defineComponent({
         endDate: '',
         description: '',
         location: ''
-      };
-      showForm.value = true;
-    };
-
-    // 编辑项目
-    const editProject = async (id) => {
+      }
+    }
+  },
+  mounted() {
+    this.loadProjects();
+  },
+  methods: {
+    async loadProjects() {
+      try {
+        const data = await projectService.getAllProjects();
+        this.projects = data || [];
+        this.filteredProjects = this.projects;
+      } catch (error) {
+        console.error('Failed to load projects:', error);
+      }
+    },
+    handleSearch() {
+      let filtered = this.projects;
+      
+      // 按分类筛选
+      if (this.selectedCategory) {
+        filtered = filtered.filter(project => project.category === this.selectedCategory);
+      }
+      
+      // 按搜索关键词筛选
+      if (this.searchQuery.trim()) {
+        const query = this.searchQuery.toLowerCase().trim();
+        filtered = filtered.filter(project => {
+          const projectName = project.name?.toLowerCase() || '';
+          const categoryLabel = getCategoryLabel(project.category)?.toLowerCase() || '';
+          const manager = project.manager?.toLowerCase() || '';
+          
+          return projectName.includes(query) || 
+                 categoryLabel.includes(query) || 
+                 manager.includes(query);
+        });
+      }
+      
+      this.filteredProjects = filtered;
+    },
+    async viewProjectDetail(id) {
       try {
         const data = await projectService.getProjectById(id);
-        formData.value = {
-          name: data.name,
-          manager: data.manager,
-          status: data.status,
-          startDate: data.startDate,
-          endDate: data.endDate,
-          description: data.description,
-          location: data.location
-        };
-        isEditing.value = true;
-        selectedProject.value = data;
-        showForm.value = true;
+        this.selectedProject = data;
+        this.showDetail = true;
+      } catch (error) {
+        console.error('Failed to load project detail:', error);
+      }
+    },
+    showAddProjectForm() {
+      this.isEditing = false;
+      this.selectedProject = null;
+      this.showForm = true;
+    },
+    async editProject(id) {
+      try {
+        const data = await projectService.getProjectById(id);
+        this.selectedProject = data;
+        this.isEditing = true;
+        this.showForm = true;
       } catch (error) {
         console.error('Failed to load project for editing:', error);
       }
-    };
-
-    // 删除项目
-    const deleteProject = async (id) => {
+    },
+    async deleteProject(id) {
       if (confirm('确定要删除这个项目吗？')) {
         try {
           await projectService.deleteProject(id);
-          // 重新加载项目列表
-          loadProjects();
+          await this.loadProjects();
         } catch (error) {
           console.error('Failed to delete project:', error);
         }
       }
-    };
-
-    // 提交项目表单
-    const submitProjectForm = async () => {
-      try {
-        if (isEditing.value && selectedProject.value) {
-          await projectService.updateProject(selectedProject.value.id, formData.value);
-        } else {
-          await projectService.createProject(formData.value);
-        }
-        showForm.value = false;
-        // 重新加载项目列表
-        loadProjects();
-      } catch (error) {
-        console.error('Failed to submit project form:', error);
+    },
+    onLocationSelected(location) {
+      this.formData.location = location;
+    },
+    normalizeCenter(p) {
+      const lng = Number(p?.centerLng) || 104.0668;
+      const lat = Number(p?.centerLat) || 30.5728;
+      return [lng, lat];
+    },
+    async onEditorSaved(payload) {
+      // 关闭弹窗并刷新列表
+      this.showForm = false;
+      await this.loadProjects();
+      this.handleSearch(); // 重新应用搜索筛选
+      if (payload?.id) {
+        // 如果是创建完成，打开详情进行核对
+        this.viewProjectDetail(payload.id);
       }
-    };
+    },
 
-    // 处理位置选择
-    const onLocationSelected = (location) => {
-      formData.value.location = location;
-    };
+    // 文件上传处理方法
+    handleDocumentSuccess(response, file, fileList) {
+      console.log('项目书上传成功:', file.name);
+      // 这里可以处理上传成功后的逻辑
+      // 例如保存文件信息到项目数据中
+    },
 
-    // 组件挂载时加载项目列表
-    onMounted(() => {
-      loadProjects();
-    });
+    handleDocumentRemove(file, fileList) {
+      console.log('项目书移除:', file.name);
+      // 这里可以处理文件移除后的逻辑
+    },
 
-    return {
-      projects,
-      showDetail,
-      showForm,
-      isEditing,
-      selectedProject,
-      formData,
-      loadProjects,
-      viewProjectDetail,
-      showAddProjectForm,
-      editProject,
-      deleteProject,
-      submitProjectForm,
-      onLocationSelected
-    };
+    async handleShpSuccess(response, file, fileList) {
+      console.log('SHP文件上传成功:', file.name);
+      
+      try {
+        // 获取所有相关的SHP文件
+        const shpFiles = fileList.map(f => f.raw || f).filter(f => f instanceof File);
+        
+        // 验证SHP文件集
+        const validation = validateShpFiles(shpFiles);
+        if (!validation.valid) {
+          console.warn('SHP文件验证失败:', validation.message);
+          return;
+        }
+
+        // 解析SHP文件
+        const parseResult = await parseShpFiles(shpFiles);
+        if (parseResult.success) {
+          console.log('SHP文件解析成功:', parseResult.data);
+          
+          // 获取统计信息
+          const stats = getShpStatistics(parseResult.data);
+          console.log('SHP文件统计:', stats);
+          
+          // 这里可以将解析后的GeoJSON数据保存到项目中
+          // 或者显示在地图上
+          this.handleShpDataParsed(parseResult.data, stats);
+        } else {
+          console.error('SHP文件解析失败:', parseResult.error);
+        }
+      } catch (error) {
+        console.error('处理SHP文件时出错:', error);
+      }
+    },
+
+    handleShpRemove(file, fileList) {
+      console.log('SHP文件移除:', file.name);
+      // 这里可以处理SHP文件移除后的逻辑
+    },
+
+    handleShpDataParsed(geoJsonData, statistics) {
+      // 处理解析后的SHP数据
+      console.log('处理解析后的SHP数据:', {
+        features: geoJsonData.features?.length || 0,
+        geometryTypes: statistics.geometryTypes,
+        bounds: statistics.bounds
+      });
+      
+      // 可以在这里:
+      // 1. 将数据保存到项目的地理数据字段中
+      // 2. 在地图上显示数据预览
+      // 3. 更新项目的地理边界信息
+      
+      // 示例：更新项目的地理信息
+      if (statistics.bounds && this.selectedProject) {
+        this.selectedProject.geoData = geoJsonData;
+        this.selectedProject.geoBounds = statistics.bounds;
+        this.selectedProject.geoStatistics = statistics;
+      }
+    }
   }
-});
+}
 </script>
 
 <style scoped>
+/* 主容器样式 */
 .project-admin {
-  padding: 20px;
-  font-family: Arial, sans-serif;
+  padding: 24px;
+  background: #f5f7fa;
+  min-height: calc(100vh - 120px);
 }
 
+/* 头部样式 */
 .admin-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 20px;
+  margin-bottom: 24px;
+  padding: 20px 24px;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+/* 搜索区域样式 */
+.search-section {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.search-input {
+  padding: 8px 16px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 14px;
+  width: 240px;
+  transition: all 0.3s ease;
+}
+
+.search-input:focus {
+  outline: none;
+  border-color: #4096ff;
+  box-shadow: 0 0 0 3px rgba(64, 150, 255, 0.1);
+}
+
+.category-select {
+  padding: 8px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 14px;
+  background: white;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.category-select:focus {
+  outline: none;
+  border-color: #4096ff;
+  box-shadow: 0 0 0 3px rgba(64, 150, 255, 0.1);
+}
+
+.admin-header h1 {
+  margin: 0;
+  color: #1f2937;
+  font-size: 24px;
+  font-weight: 600;
 }
 
 .btn-add-project {
-  padding: 8px 16px;
-  background-color: #4CAF50;
+  padding: 10px 20px;
+  background: linear-gradient(135deg, #4096ff 0%, #1677ff 100%);
   color: white;
   border: none;
-  border-radius: 4px;
+  border-radius: 8px;
   cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 4px rgba(64, 150, 255, 0.3);
 }
 
+.btn-add-project:hover {
+  background: linear-gradient(135deg, #1677ff 0%, #0958d9 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(64, 150, 255, 0.4);
+}
+
+/* 项目列表样式 */
 .project-list {
-  border: 1px solid #ddd;
-  border-radius: 4px;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
   overflow: hidden;
 }
 
 .project-list-header {
-  display: flex;
-  background-color: #f2f2f2;
-  font-weight: bold;
+  display: grid;
+  grid-template-columns: 2fr 1.2fr 1fr 1.2fr 1.2fr 1.5fr;
+  gap: 16px;
+  padding: 16px 24px;
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+  border-bottom: 2px solid #e2e8f0;
+  font-weight: 600;
+  color: #374151;
+  font-size: 14px;
 }
 
 .header-item {
-  flex: 1;
-  padding: 12px;
-  text-align: left;
+  display: flex;
+  align-items: center;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
 .project-item {
-  display: flex;
-  border-bottom: 1px solid #ddd;
-  transition: background-color 0.2s;
+  display: grid;
+  grid-template-columns: 2fr 1.2fr 1fr 1.2fr 1.2fr 1.5fr;
+  gap: 16px;
+  padding: 20px 24px;
+  border-bottom: 1px solid #f1f5f9;
+  transition: all 0.2s ease;
+  align-items: center;
 }
 
 .project-item:hover {
-  background-color: #f9f9f9;
+  background: #f8fafc;
+  transform: translateX(2px);
+}
+
+.project-item:last-child {
+  border-bottom: none;
 }
 
 .item-content {
-  flex: 1;
-  padding: 12px;
+  color: #374151;
+  font-size: 14px;
+  line-height: 1.5;
+  word-break: break-word;
 }
 
+/* 状态徽章样式 */
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.status-planning {
+  background: #fef3c7;
+  color: #92400e;
+  border: 1px solid #fbbf24;
+}
+
+.status-inProgress {
+  background: #dbeafe;
+  color: #1e40af;
+  border: 1px solid #3b82f6;
+}
+
+.status-completed {
+  background: #d1fae5;
+  color: #065f46;
+  border: 1px solid #10b981;
+}
+
+.status-delayed {
+  background: #fee2e2;
+  color: #991b1b;
+  border: 1px solid #ef4444;
+}
+
+/* 操作按钮样式 */
 .item-actions {
-  padding: 12px;
   display: flex;
   gap: 8px;
+  align-items: center;
 }
 
 .item-actions button {
   padding: 6px 12px;
   border: none;
-  border-radius: 4px;
+  border-radius: 6px;
   cursor: pointer;
+  font-size: 12px;
+  font-weight: 500;
+  transition: all 0.2s ease;
 }
 
-.item-actions button:nth-child(1) {
-  background-color: #2196F3;
+.item-actions button:first-child {
+  background: #e0f2fe;
+  color: #0369a1;
+  border: 1px solid #0ea5e9;
+}
+
+.item-actions button:first-child:hover {
+  background: #0ea5e9;
   color: white;
 }
 
 .item-actions button:nth-child(2) {
-  background-color: #FFC107;
-  color: black;
+  background: #f0fdf4;
+  color: #166534;
+  border: 1px solid #22c55e;
 }
 
-.item-actions button:nth-child(3) {
-  background-color: #F44336;
+.item-actions button:nth-child(2):hover {
+  background: #22c55e;
   color: white;
 }
 
+.item-actions button:last-child {
+  background: #fef2f2;
+  color: #991b1b;
+  border: 1px solid #ef4444;
+}
+
+.item-actions button:last-child:hover {
+  background: #ef4444;
+  color: white;
+}
+
+/* 弹窗样式 */
 .modal-overlay {
   position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: rgba(0, 0, 0, 0.5);
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
   display: flex;
   justify-content: center;
   align-items: center;
   z-index: 1000;
+  backdrop-filter: blur(4px);
 }
 
 .modal {
-  background-color: white;
-  border-radius: 8px;
-  width: 80%;
-  max-width: 800px;
+  width: 900px;
   max-height: 90vh;
   overflow: auto;
+  background: white;
+  border-radius: 16px;
+  padding: 0;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+
+.modal.modal-wide {
+  width: 1100px;
 }
 
 .modal-header {
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  padding: 16px;
-  border-bottom: 1px solid #ddd;
+  justify-content: space-between;
+  padding: 24px 32px;
+  border-bottom: 1px solid #e5e7eb;
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
 }
 
-.modal-header button {
-  background: none;
-  border: none;
-  font-size: 24px;
+.modal-header h2 {
+  margin: 0;
+  color: #1f2937;
+  font-size: 20px;
+  font-weight: 600;
+}
+
+.btn-close {
+  padding: 8px 16px;
+  background: #f3f4f6;
+  color: #6b7280;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
   cursor: pointer;
+  font-size: 14px;
+  transition: all 0.2s ease;
+}
+
+.btn-close:hover {
+  background: #e5e7eb;
+  color: #374151;
 }
 
 .modal-body {
-  padding: 16px;
+  padding: 24px 32px;
 }
 
+/* 项目详情样式 */
 .project-detail {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 24px;
 }
 
 .detail-section {
-  margin-bottom: 16px;
+  padding: 20px;
+  background: #f8fafc;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
 }
 
 .detail-section h3 {
-  border-bottom: 1px solid #ddd;
+  margin: 0 0 16px 0;
+  color: #1f2937;
+  font-size: 18px;
+  font-weight: 600;
   padding-bottom: 8px;
-  margin-top: 0;
+  border-bottom: 2px solid #e2e8f0;
 }
 
-.status-badge {
-  padding: 4px 8px;
-  border-radius: 12px;
-  font-size: 12px;
-  font-weight: bold;
+.detail-section p {
+  margin: 8px 0;
+  color: #4b5563;
+  line-height: 1.6;
 }
 
-.status-planning {
-  background-color: #FFC107;
-  color: black;
+.detail-section strong {
+  color: #1f2937;
+  font-weight: 600;
 }
 
-.status-inProgress {
-  background-color: #2196F3;
-  color: white;
+.rich-text {
+  white-space: pre-wrap;
+  line-height: 1.75;
+  word-break: break-word;
+  overflow-wrap: anywhere;
+  color: #374151;
+  font-size: 14px;
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 16px;
+  margin-top: 8px;
 }
 
-.status-completed {
-  background-color: #4CAF50;
-  color: white;
+/* 响应式设计 */
+@media (max-width: 1200px) {
+  .project-list-header,
+  .project-item {
+    grid-template-columns: 2fr 1fr 1fr 1fr 1fr 1.2fr;
+    gap: 12px;
+  }
 }
 
-.status-onHold {
-  background-color: #F44336;
-  color: white;
-}
-
-.form-group {
-  margin-bottom: 16px;
-}
-
-.form-group label {
-  display: block;
-  margin-bottom: 8px;
-  font-weight: bold;
-}
-
-.form-group input,
-.form-group select,
-.form-group textarea {
-  width: 100%;
-  padding: 8px;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  box-sizing: border-box;
-}
-
-.form-group textarea {
-  min-height: 100px;
-}
-
-.location-picker {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.location-picker .cesium-viewer {
-  height: 300px;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-}
-
-.form-actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 8px;
-  margin-top: 24px;
-}
-
-.form-actions button {
-  padding: 8px 16px;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-}
-
-.btn-submit {
-  background-color: #4CAF50;
-  color: white;
+@media (max-width: 768px) {
+  .project-admin {
+    padding: 16px;
+  }
+  
+  .admin-header {
+    flex-direction: column;
+    gap: 16px;
+    text-align: center;
+  }
+  
+  .project-list-header,
+  .project-item {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+  
+  .header-item {
+    display: none;
+  }
+  
+  .project-item {
+    display: block;
+    padding: 16px;
+  }
+  
+  .item-content {
+    margin-bottom: 8px;
+    padding: 4px 0;
+    border-bottom: 1px solid #f1f5f9;
+  }
+  
+  .item-content:last-child {
+    border-bottom: none;
+  }
+  
+  .item-actions {
+    margin-top: 12px;
+    justify-content: center;
+  }
+  
+  .modal {
+    width: 95vw;
+    margin: 20px;
+  }
 }
 </style>

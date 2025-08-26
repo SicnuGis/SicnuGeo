@@ -10,6 +10,7 @@
     "lint": "eslint . --ext .vue,.js,.jsx,.cjs,.mjs --fix --ignore-path .gitignore"
   },
   "dependencies": {
+    "@arcgis/core": "^4.33.12",
     "@mapbox/mapbox-gl-draw": "^1.5.0",
     "@pinia/nuxt": "^0.4.11",
     "axios": "^0.27.2",
@@ -19,6 +20,7 @@
     "maplibre-gl": "^5.7.0",
     "pinia": "^2.0.36",
     "vue": "^2.6.14",
+    "vue-ganttastic": "^0.9.34",
     "vue-router": "^3.5.1",
     "vuex": "^3.6.2"
   },
