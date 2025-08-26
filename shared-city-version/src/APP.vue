@@ -5,6 +5,7 @@
       <el-menu-item index="home">首页</el-menu-item>
       <el-menu-item index="projects">项目管理</el-menu-item>
       <el-menu-item index="about">关于我们</el-menu-item>
+      <el-menu-item index="login">登录</el-menu-item>
     </el-menu>
 
     <!-- 路由出口 -->
@@ -54,6 +55,9 @@ export default {
         case 'about':
           this.$router.push('/about')
           break
+        case 'login':
+          this.$router.push('/login')
+          break
       }
     },
     updateActiveMenu() {
@@ -64,6 +68,8 @@ export default {
         this.activeIndex = 'projects'
       } else if (path === '/about') {
         this.activeIndex = 'about'
+      } else if (path === '/login') {
+        this.activeIndex = 'login'
       }
     }
   }

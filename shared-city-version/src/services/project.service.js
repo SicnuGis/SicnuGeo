@@ -1,5 +1,6 @@
 import axios from 'axios';
 import { useUserStore } from '@/store/index';
+import { getActivePinia } from 'pinia'
 
 // 创建axios实例
 const api = axios.create({
@@ -9,15 +10,27 @@ const api = axios.create({
 
 // 请求拦截器，添加认证token
 api.interceptors.request.use(config => {
-  // 在请求拦截器中使用Pinia store
-  // 注意：这里需要使用函数包装，因为拦截器是在应用初始化时创建的
-  const userStore = useUserStore();
-  const token = userStore.token;
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
+  try {
+    // 仅当 Pinia 已激活时才访问 store，避免在模块初始化阶段报错
+    if (getActivePinia && getActivePinia()) {
+      const userStore = useUserStore();
+      const token = userStore.token;
+      if (token) {
+        config.headers.Authorization = `Bearer ${token}`;
+      }
+    }
+  } catch (e) {
+    // 忽略 token 注入失败，保持请求继续
   }
   return config;
 });
+
+/**
+ * 导出useProjectService函数，用于在组件中使用项目服务
+ */
+export const useProjectService = () => {
+  return projectService;
+};
 
 /**
  * 项目服务
@@ -138,5 +151,45 @@ export const projectService = {
       console.error(`取消订阅项目 ${projectId} 失败:`, error);
       throw error;
     }
+  },
+
+  /**
+   * 保存/替换项目要素（GeoJSON FeatureCollection）
+   */
+  saveProjectFeatures: async (projectId, featureCollection) => {
+    try {
+      const response = await api.post(`/projects/${projectId}/features`, featureCollection)
+      return response.data
+    } catch (error) {
+      console.error(`保存项目 ${projectId} 要素失败:`, error)
+      throw error
+    }
+  },
+
+  /**
+   * 获取项目要素
+   */
+  getProjectFeatures: async (projectId) => {
+    try {
+      const response = await api.get(`/projects/${projectId}/features`)
+      return response.data
+    } catch (error) {
+      console.error(`获取项目 ${projectId} 要素失败:`, error)
+      throw error
+    }
+  },
+
+  /** 评论相关 **/
+  getProjectComments: async (projectId) => {
+    try {
+      const resp = await api.get(`/projects/${projectId}/comments`)
+      return resp.data
+    } catch (e) { console.error('获取评论失败', e); throw e }
+  },
+  addProjectComment: async (projectId, payload) => {
+    try {
+      const resp = await api.post(`/projects/${projectId}/comments`, payload)
+      return resp.data
+    } catch (e) { console.error('添加评论失败', e); throw e }
   }
 };

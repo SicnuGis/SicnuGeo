@@ -21,20 +21,6 @@ npm -v
 echo Installing dependencies...
 npm install
 
-:: Check if serve-no-lint script exists in package.json
-echo Checking for serve-no-lint script...
-if exist package.json (
-    findstr /C:"serve-no-lint" package.json >nul
-    if %ERRORLEVEL% EQU 0 (
-        echo Starting development server without ESLint...
-        npm run serve-no-lint
-    ) else (
-        echo serve-no-lint script not found in package.json
-        echo Trying to start with npm run serve...
-        npm run serve
-    )
-) else (
-    echo package.json not found
-    pause
-    exit /b 1
-)
+:: Start Vite development server
+echo Starting Vite development server...
+npm run dev

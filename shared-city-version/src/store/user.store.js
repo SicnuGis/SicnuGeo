@@ -14,7 +14,8 @@ export const useUserStore = defineStore('user', {
   getters: {
     getAllUsers: (state) => state.users,
     getCurrentUser: (state) => state.currentUser,
-    isAuthenticated: (state) => !!state.token
+    isAuthenticated: (state) => !!state.token,
+    isGovernment: (state) => state.currentUser && state.currentUser.role === 'government'
   },
 
   // 动作

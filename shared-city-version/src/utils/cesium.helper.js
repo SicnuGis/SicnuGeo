@@ -1,4 +1,5 @@
-import * as Cesium from 'cesium'
+// 在Vite中，我们直接使用全局Cesium对象，因为它已经在index.html中通过CDN引入
+const Cesium = window.Cesium
 
 /**
  * Cesium 辅助工具类

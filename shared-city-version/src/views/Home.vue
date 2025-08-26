@@ -1,4 +1,4 @@
-<template>
+<template name="HomeView">
   <div class="home-container">
     <div class="hero">
       <h1>共享城市版本应用</h1>
@@ -26,7 +26,7 @@
 
     <div class="recent-projects" v-if="projects.length > 0">
       <h2>最近项目</h2>
-      <el-carousel :interval="5000" arrow="always">
+      <el-carousel :interval="5000" arrow="always" height="420px">
         <el-carousel-item v-for="project in projects" :key="project.id">
           <div class="project-card">
             <h3>{{ project.name }}</h3>

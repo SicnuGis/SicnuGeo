@@ -2,7 +2,7 @@
   <div class="project-admin-container">
     <div class="header">
       <h2>项目管理</h2>
-      <button class="add-btn" @click="showAddDialog = true">添加项目</button>
+      <button class="add-btn" @click="goCreate" v-if="isGovernment">添加项目</button>
     </div>
 
     <!-- 项目列表 -->
@@ -17,8 +17,8 @@
         <el-table-column label="操作" width="180" fixed="right">
           <template #default="scope">
             <el-button size="small" @click="viewProject(scope.row.id)">查看</el-button>
-            <el-button size="small" type="primary" @click="editProject(scope.row)">编辑</el-button>
-            <el-button size="small" type="danger" @click="deleteProject(scope.row.id)">删除</el-button>
+            <el-button v-if="isGovernment" size="small" type="primary" @click="editProject(scope.row.id)">编辑</el-button>
+            <el-button v-if="isGovernment" size="small" type="danger" @click="deleteProject(scope.row.id)">删除</el-button>
           </template>
         </el-table-column>
       </el-table>
@@ -58,6 +58,7 @@
 
 <script>
 import { projectService } from '@/services/project.service'
+import { useUserStore } from '@/store/index'
 
 export default {
   data() {
@@ -72,10 +73,17 @@ export default {
         startDate: '',
         endDate: '',
         status: 'notStarted'
-      }
+      },
+      userStore: null
+    }
+  },
+  computed: {
+    isGovernment() {
+      return this.userStore && this.userStore.isGovernment
     }
   },
   mounted() {
+    this.userStore = useUserStore()
     this.loadProjects()
   },
   methods: {
@@ -83,20 +91,20 @@ export default {
       try {
         const data = await projectService.getAllProjects()
         this.projects = data
-        // 更新Vuex store
-        this.$store.dispatch('setProjects', data)
+        this.$store && this.$store.dispatch && this.$store.dispatch('setProjects', data)
       } catch (error) {
         console.error('加载项目列表失败:', error)
-        this.$message.error('加载项目列表失败')
+        this.$message && this.$message.error && this.$message.error('加载项目列表失败')
       }
     },
     viewProject(id) {
-      this.$router.push({ name: 'projectDetail', params: { id } })
+      this.$router.push({ name: 'ProjectDetail', params: { id } })
     },
-    editProject(project) {
-      this.isEditing = true
-      this.formData = { ...project }
-      this.showAddDialog = true
+    goCreate() {
+      this.$router.push({ name: 'ProjectCreate' })
+    },
+    editProject(id) {
+      this.$router.push({ name: 'ProjectEdit', params: { id } })
     },
     async deleteProject(id) {
       try {
