@@ -1,0 +1,11 @@
+# PostgreSQL 配置（准备好数据库后，将 active 切到 postgres）
+spring:
+  datasource:
+    driver-class-name: org.postgresql.Driver
+    url: jdbc:postgresql://localhost:5432/sicnugeo
+    username: postgres
+    password: postgres
+  jpa:
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect

@@ -7,6 +7,11 @@
     </div>
 
     <div class="features">
+      <div class="feature-item" @click="$router.push('/ai-chat')" style="cursor: pointer;">
+        <div class="feature-icon">🤖</div>
+        <h3>AI 智能助手</h3>
+        <p>与AI对话，获取城市规划建议和项目管理支持</p>
+      </div>
       <div class="feature-item">
         <div class="feature-icon">📊</div>
         <h3>项目甘特图</h3>

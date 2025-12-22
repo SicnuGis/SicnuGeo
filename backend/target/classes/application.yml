@@ -1,0 +1,21 @@
+server:
+  port: 8085
+spring:
+  profiles:
+    active: dev
+  jpa:
+    hibernate:
+      ddl-auto: update
+    open-in-view: false
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: true
+  ai:
+    openai:
+      base-url: https://dashscope.aliyuncs.com/compatible-mode
+      api-key: sk-cae13e65ee4a4e38a244e1810f8e4174
+      chat:
+        options:
+          model: qwen-max
+          temperature: 0.7

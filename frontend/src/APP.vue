@@ -3,6 +3,7 @@
     <!-- 导航栏 -->
     <el-menu :default-active="activeIndex" class="el-menu-demo" mode="horizontal" @select="handleSelect">
       <el-menu-item index="home">首页</el-menu-item>
+      <el-menu-item index="ai-chat">AI 助手</el-menu-item>
       <el-menu-item index="projects">项目管理</el-menu-item>
       <el-menu-item index="subscribed-projects">订阅项目</el-menu-item>
       <el-menu-item index="about">关于我们</el-menu-item>
@@ -25,6 +26,7 @@
     <footer>
       <p>© 2023 共享城市版本应用. 保留所有权利.</p>
     </footer>
+    
   </div>
 </template>
 
@@ -60,6 +62,9 @@ export default {
       switch(key) {
         case 'home':
           this.$router.push('/')
+          break
+        case 'ai-chat':
+          this.$router.push('/ai-chat')
           break
         case 'projects':
           this.$router.push('/projects')

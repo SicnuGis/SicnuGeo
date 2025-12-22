@@ -9,6 +9,7 @@ import SubscribedProjects from '../views/SubscribedProjects.vue'
 import ProjectTimeLine from '../components/charts/ProjectTimeLine.vue'
 import Login from '../views/Login.vue'
 import ProjectMapEditor from '@/components/gis/ProjectMapEditor.vue'
+import AIChatView from '../views/AIChatView.vue'
 
 Vue.use(VueRouter)
 
@@ -17,6 +18,11 @@ const routes = [
     path: '/',
     name: 'Home',
     component: Home
+  },
+  {
+    path: '/ai-chat',
+    name: 'AIChat',
+    component: AIChatView
   },
   {
     path: '/login',
