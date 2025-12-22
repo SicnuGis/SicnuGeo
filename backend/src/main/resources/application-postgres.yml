@@ -5,6 +5,7 @@ spring:
     url: jdbc:postgresql://localhost:5432/sicnugeo
     username: postgres
     password: postgres
+
   jpa:
     properties:
       hibernate:

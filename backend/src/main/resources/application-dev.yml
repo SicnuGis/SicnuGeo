@@ -4,7 +4,8 @@ spring:
     driver-class-name: org.h2.Driver
     url: jdbc:h2:mem:sicnugeo;DB_CLOSE_DELAY=-1;MODE=PostgreSQL
     username: sa
-    password: 
+    password: ""
+
   h2:
     console:
       enabled: true
