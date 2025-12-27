@@ -5,9 +5,49 @@ import { defineStore } from 'pinia';
 export const useProjectStore = defineStore('project', {
   // 状态定义
   state: () => ({
-    projects: [],
+    projects: [
+      {
+        id: 1,
+        name: '智慧城市建设项目',
+        description: '城市基础设施智能化改造项目',
+        status: 'inProgress',
+        startDate: '2023-01-15',
+        endDate: '2023-12-31',
+        createdAt: '2023-01-01',
+        centerLng: 104.0668,
+        centerLat: 30.5728,
+        category: 'PUBLIC_FACILITIES',
+        manager: '张三'
+      },
+      {
+        id: 2,
+        name: '公共交通优化工程',
+        description: '城市公共交通系统升级与优化',
+        status: 'inProgress',
+        startDate: '2023-03-01',
+        endDate: '2023-10-31',
+        createdAt: '2023-02-15',
+        centerLng: 104.1,
+        centerLat: 30.6,
+        category: 'ROAD_TRAFFIC',
+        manager: '李四'
+      },
+      {
+        id: 3,
+        name: '城市绿化提升计划',
+        description: '城市公园和绿化带建设项目',
+        status: 'completed',
+        startDate: '2023-02-01',
+        endDate: '2023-06-30',
+        createdAt: '2023-01-20',
+        centerLng: 104.05,
+        centerLat: 30.55,
+        category: 'LANDSCAPE_GREENING',
+        manager: '王五'
+      }
+    ],
     selectedProject: null,
-    subscribedProjects: []
+    subscribedProjects: [1, 2, 3]
   }),
 
   // 获取器 - 用于派生状态
