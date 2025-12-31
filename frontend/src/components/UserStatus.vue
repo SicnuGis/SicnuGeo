@@ -2,7 +2,7 @@
   <div class="user-status">
     <!-- 未登录状态 -->
     <div v-if="!isLoggedIn" class="login-section">
-      <button class="btn-login" @click="showLoginModal">
+      <button class="btn-login" @click="goToLogin">
         <span class="login-icon">👤</span>
         登录
       </button>
@@ -13,17 +13,17 @@
       <div class="user-info" @click="toggleDropdown">
         <img 
           :src="avatarUrl" 
-          :alt="user.nickname || user.username"
+          :alt="user.nickName || user.phone"
           class="user-avatar"
           :class="{
-            'government-border': user.userType === 'government',
-            'citizen-border': user.userType === 'citizen'
+            'government-border': user.role === 'government',
+            'citizen-border': user.role === 'normal'
           }"
         >
         <div class="user-details">
-          <div class="user-name">{{ user.nickname || user.username }}</div>
-          <div class="user-type" :class="user.userType">
-            {{ user.userType === 'government' ? '政府用户' : '普通用户' }}
+          <div class="user-name">{{ user.nickName || user.phone }}</div>
+          <div class="user-type" :class="user.role">
+            {{ user.role === 'government' ? '政府用户' : '普通用户' }}
           </div>
         </div>
         <span class="dropdown-arrow" :class="{ 'open': showDropdown }">▼</span>
@@ -43,13 +43,6 @@
       </div>
     </div>
     
-    <!-- 登录弹窗 -->
-    <LoginModal 
-      :visible="loginModalVisible" 
-      @close="loginModalVisible = false"
-      @login-success="handleLoginSuccess"
-    />
-    
     <!-- 用户信息弹窗 -->
     <UserProfile 
       :visible="profileModalVisible" 
@@ -63,29 +56,27 @@
 
 <script>
 import authService from '@/services/auth.service';
-import LoginModal from './LoginModal.vue';
 import UserProfile from './UserProfile.vue';
 
 export default {
   name: 'UserStatus',
   components: {
-    LoginModal,
     UserProfile
   },
   data() {
     return {
       user: null,
       showDropdown: false,
-      loginModalVisible: false,
       profileModalVisible: false
     }
   },
   computed: {
     isLoggedIn() {
-      return authService.isAuthenticated() && this.user;
+      return !!this.user;
     },
     avatarUrl() {
-      return authService.getAvatarUrl();
+      // Simple avatar generation
+      return `https://ui-avatars.com/api/?name=${encodeURIComponent(this.user?.nickName || 'User')}&background=random&color=fff&size=40`;
     }
   },
   mounted() {
@@ -98,55 +89,33 @@ export default {
   },
   methods: {
     async checkAuthStatus() {
-      if (authService.isAuthenticated()) {
-        this.user = authService.getUser();
-        // 可以在这里调用API获取最新用户信息
-        // const currentUser = await authService.getCurrentUser();
-        // if (currentUser) {
-        //   this.user = currentUser;
-        // }
-      }
+      this.user = await authService.getCurrentUser();
     },
-    
-    showLoginModal() {
-      this.loginModalVisible = true;
+    goToLogin() {
+      this.$router.push('/login');
     },
-    
-    showUserProfile() {
-      this.showDropdown = false;
-      this.profileModalVisible = true;
-    },
-    
-    toggleDropdown() {
+    toggleDropdown(e) {
+      e.stopPropagation();
       this.showDropdown = !this.showDropdown;
     },
-    
-    handleClickOutside(event) {
-      if (!this.$el.contains(event.target)) {
+    handleClickOutside(e) {
+      if (this.$el && !this.$el.contains(e.target)) {
         this.showDropdown = false;
       }
     },
-    
-    handleLoginSuccess(user) {
-      this.user = user;
-      this.loginModalVisible = false;
-      this.$emit('login-success', user);
+    showUserProfile() {
+      this.profileModalVisible = true;
+      this.showDropdown = false;
     },
-    
-    handleLogout() {
-      if (confirm('确定要退出登录吗？')) {
-        authService.logout();
-        this.user = null;
-        this.showDropdown = false;
-        this.profileModalVisible = false;
-        this.$emit('logout');
-      }
+    async handleLogout() {
+      await authService.logout();
+      this.user = null;
+      this.showDropdown = false;
+      this.$router.push('/login');
+      this.$emit('logout');
     },
-    
     handleUserUpdated(updatedUser) {
       this.user = updatedUser;
-      // 更新本地存储
-      localStorage.setItem('user', JSON.stringify(updatedUser));
       this.$emit('user-updated', updatedUser);
     }
   }

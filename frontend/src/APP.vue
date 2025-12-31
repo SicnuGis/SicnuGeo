@@ -31,7 +31,7 @@
 </template>
 
 <script>
-import { mapGetters } from 'vuex'
+import { useProjectStore } from '@/store/project.store'
 import UserStatus from '@/components/UserStatus.vue'
 
 export default {
@@ -45,7 +45,7 @@ export default {
     }
   },
   computed: {
-    ...mapGetters(['getAllProjects'])//从vuex获取所有项目
+    // ...mapGetters(['getAllProjects'])//从vuex获取所有项目
   },
   created() {
     // 根据当前路由设置激活的菜单项

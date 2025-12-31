@@ -6,24 +6,24 @@
         <button class="btn-close" @click="$emit('close')">&times;</button>
       </div>
       
-      <div class="modal-body" v-if="user && user.username">
+      <div class="modal-body" v-if="user">
         <!-- 用户头像和基本信息 -->
         <div class="user-avatar-section">
           <div class="avatar-container">
             <img 
               :src="avatarUrl" 
-              :alt="user.nickname || user.username"
+              :alt="user.nickName || user.phone"
               class="user-avatar"
-              :class="{ 'government-border': user.userType === 'government', 'citizen-border': user.userType === 'citizen' }"
+              :class="{ 'government-border': user.role === 'government', 'citizen-border': user.role === 'normal' }"
             >
-            <div class="user-type-badge" :class="user.userType">
-              {{ user.userType === 'government' ? '政府' : '普通' }}
+            <div class="user-type-badge" :class="user.role">
+              {{ user.role === 'government' ? '政府' : '普通' }}
             </div>
           </div>
           <div class="user-basic-info">
-            <h3>{{ user.nickname || user.username }}</h3>
+            <h3>{{ user.nickName || user.phone }}</h3>
             <p class="user-type-desc">
-              {{ user.userType === 'government' ? '政府用户' : '普通用户' }}
+              {{ user.role === 'government' ? '政府用户' : '普通用户' }}
             </p>
           </div>
         </div>
@@ -31,67 +31,22 @@
         <!-- 用户详细信息 -->
         <div class="user-details">
           <div class="detail-item">
-            <label>用户名</label>
-            <div class="detail-value">{{ user.username }}</div>
+            <label>手机号</label>
+            <div class="detail-value">{{ user.phone }}</div>
           </div>
           
           <div class="detail-item">
             <label>昵称</label>
-            <div class="detail-value editable" @click="startEdit('nickname')">
-              <span v-if="!editing.nickname">{{ user.nickname || '未设置' }}</span>
-              <input 
-                v-else
-                type="text" 
-                v-model="editForm.nickname" 
-                @blur="saveEdit('nickname')"
-                @keyup.enter="saveEdit('nickname')"
-                @keyup.esc="cancelEdit('nickname')"
-                ref="nicknameInput"
-              >
-              <span class="edit-icon">✏️</span>
-            </div>
-          </div>
-          
-          <div class="detail-item">
-            <label>邮箱</label>
-            <div class="detail-value editable" @click="startEdit('email')">
-              <span v-if="!editing.email">{{ user.email }}</span>
-              <input 
-                v-else
-                type="email" 
-                v-model="editForm.email" 
-                @blur="saveEdit('email')"
-                @keyup.enter="saveEdit('email')"
-                @keyup.esc="cancelEdit('email')"
-                ref="emailInput"
-              >
-              <span class="edit-icon">✏️</span>
-            </div>
-          </div>
-          
-          <div class="detail-item">
-            <label>密码</label>
-            <div class="detail-value editable" @click="startEdit('password')">
-              <span v-if="!editing.password">••••••••</span>
-              <input 
-                v-else
-                type="password" 
-                v-model="editForm.password" 
-                placeholder="输入新密码"
-                @blur="saveEdit('password')"
-                @keyup.enter="saveEdit('password')"
-                @keyup.esc="cancelEdit('password')"
-                ref="passwordInput"
-              >
-              <span class="edit-icon">✏️</span>
+            <div class="detail-value">
+              <span>{{ user.nickName || '未设置' }}</span>
             </div>
           </div>
           
           <div class="detail-item">
             <label>用户类型</label>
             <div class="detail-value">
-              <span class="type-badge" :class="user.userType">
-                {{ user.userType === 'government' ? '🏛️ 政府用户' : '👤 普通用户' }}
+              <span class="type-badge" :class="user.role">
+                {{ user.role === 'government' ? '🏛️ 政府用户' : '👤 普通用户' }}
               </span>
             </div>
           </div>
@@ -102,35 +57,15 @@
           </div>
         </div>
         
-        <!-- 操作按钮 -->
-        <div class="profile-actions">
-          <button class="btn-logout" @click="handleLogout">
-            退出登录
-          </button>
+        <div class="modal-footer">
+          <button class="btn-logout" @click="$emit('logout')">退出登录</button>
         </div>
-      </div>
-      
-      <!-- 用户信息不存在时的提示 -->
-      <div v-else class="empty-state">
-        <p>用户信息不可用</p>
-      </div>
-      
-      <!-- 错误提示 -->
-      <div v-if="errorMessage" class="error-message">
-        {{ errorMessage }}
-      </div>
-      
-      <!-- 成功提示 -->
-      <div v-if="successMessage" class="success-message">
-        {{ successMessage }}
       </div>
     </div>
   </div>
 </template>
 
 <script>
-import authService from '@/services/auth.service';
-
 export default {
   name: 'UserProfile',
   props: {
@@ -143,125 +78,18 @@ export default {
       default: () => ({})
     }
   },
-  data() {
-    return {
-      editing: {
-        nickname: false,
-        email: false,
-        password: false
-      },
-      editForm: {
-        nickname: '',
-        email: '',
-        password: ''
-      },
-      errorMessage: '',
-      successMessage: ''
-    }
-  },
   computed: {
     avatarUrl() {
-      return authService.getAvatarUrl();
-    }
-  },
-  watch: {
-    visible(newVal) {
-      if (newVal) {
-        this.resetForm();
-      }
+      return `https://ui-avatars.com/api/?name=${encodeURIComponent(this.user?.nickName || 'User')}&background=random&color=fff&size=40`;
     }
   },
   methods: {
     handleOverlayClick() {
       this.$emit('close');
     },
-    
-    resetForm() {
-      this.editing = {
-        nickname: false,
-        email: false,
-        password: false
-      };
-      this.editForm = {
-        nickname: this.user.nickname || '',
-        email: this.user.email || '',
-        password: ''
-      };
-      this.errorMessage = '';
-      this.successMessage = '';
-    },
-    
-    startEdit(field) {
-      this.editing[field] = true;
-      this.editForm[field] = field === 'password' ? '' : this.user[field] || '';
-      
-      // 聚焦到输入框
-      this.$nextTick(() => {
-        const inputRef = this.$refs[field + 'Input'];
-        if (inputRef) {
-          inputRef.focus();
-          if (field !== 'password') {
-            inputRef.select();
-          }
-        }
-      });
-    },
-    
-    cancelEdit(field) {
-      this.editing[field] = false;
-      this.editForm[field] = field === 'password' ? '' : this.user[field] || '';
-    },
-    
-    async saveEdit(field) {
-      if (!this.editForm[field] && field !== 'nickname') {
-        this.cancelEdit(field);
-        return;
-      }
-      
-      try {
-        const updateData = {};
-        updateData[field] = this.editForm[field];
-        
-        // 这里应该调用真实的API，现在使用模拟
-        await new Promise(resolve => setTimeout(resolve, 500));
-        
-        // 更新本地用户信息
-        this.$emit('user-updated', { ...this.user, [field]: this.editForm[field] });
-        
-        this.editing[field] = false;
-        this.successMessage = '更新成功！';
-        
-        setTimeout(() => {
-          this.successMessage = '';
-        }, 2000);
-        
-      } catch (error) {
-        this.errorMessage = error.message || '更新失败，请重试';
-        setTimeout(() => {
-          this.errorMessage = '';
-        }, 3000);
-      }
-    },
-    
-    handleLogout() {
-      if (confirm('确定要退出登录吗？')) {
-        authService.logout();
-        this.$emit('logout');
-        this.$emit('close');
-      }
-    },
-    
-    formatDate(dateString) {
-      if (!dateString) return '未知';
-      try {
-        return new Date(dateString).toLocaleDateString('zh-CN', {
-          year: 'numeric',
-          month: 'long',
-          day: 'numeric'
-        });
-      } catch {
-        return '未知';
-      }
+    formatDate(dateStr) {
+      if (!dateStr) return '未知';
+      return new Date(dateStr).toLocaleString();
     }
   }
 }
