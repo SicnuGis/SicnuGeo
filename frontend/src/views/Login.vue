@@ -61,7 +61,10 @@ export default {
         const store = useUserStore();
         store.setCurrentUser(user);
         this.$message.success('登录成功');
-        this.$router.push('/');
+        
+        // Redirect to original requested page or home
+        const redirect = this.$route.query.redirect || '/';
+        this.$router.push(redirect);
       } catch (error) {
         this.$message.error('登录失败: ' + error.message);
       } finally {

@@ -1,5 +1,6 @@
 import Vue from 'vue'
 import VueRouter from 'vue-router'
+import authService from '@/services/auth.service'
 
 // 导入组件
 import Home from '../views/Home.vue'
@@ -17,12 +18,14 @@ const routes = [
   {
     path: '/',
     name: 'Home',
-    component: Home
+    component: Home,
+    meta: { requiresAuth: true }
   },
   {
     path: '/ai-chat',
     name: 'AIChat',
-    component: AIChatView
+    component: AIChatView,
+    meta: { requiresAuth: true }
   },
   {
     path: '/login',
@@ -37,27 +40,32 @@ const routes = [
   {
     path: '/projects',
     name: 'ProjectAdmin',
-    component: ProjectAdmin
+    component: ProjectAdmin,
+    meta: { requiresAuth: true }
   },
   {
     path: '/projects/new',
     name: 'ProjectCreate',
-    component: ProjectMapEditor
+    component: ProjectMapEditor,
+    meta: { requiresAuth: true }
   },
   {
     path: '/projects/:id/edit',
     name: 'ProjectEdit',
-    component: ProjectMapEditor
+    component: ProjectMapEditor,
+    meta: { requiresAuth: true }
   },
   {
     path: '/projects/:id',
     name: 'ProjectDetail',
-    component: ProjectTimeLine
+    component: ProjectTimeLine,
+    meta: { requiresAuth: true }
   },
   {
     path: '/subscribed-projects',
     name: 'SubscribedProjects',
-    component: SubscribedProjects
+    component: SubscribedProjects,
+    meta: { requiresAuth: true }
   }
 ]
 
@@ -65,6 +73,24 @@ const router = new VueRouter({
   mode: 'history',
   base: import.meta.env.BASE_URL || '/',
   routes
+})
+
+// 全局路由守卫
+router.beforeEach((to, from, next) => {
+  const isAuthenticated = authService.isAuthenticated()
+  
+  if (to.matched.some(record => record.meta.requiresAuth)) {
+    if (!isAuthenticated) {
+      next({
+        path: '/login',
+        query: { redirect: to.fullPath }
+      })
+    } else {
+      next()
+    }
+  } else {
+    next()
+  }
 })
 
 export default router
